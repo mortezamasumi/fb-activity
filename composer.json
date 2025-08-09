@@ -1,0 +1,70 @@
+{
+    "name": "mortezamasumi/fb-activity",
+    "description": "This is my package fb-activity",
+    "keywords": [
+        "mortezamasumi",
+        "laravel",
+        "fb-activity"
+    ],
+    "homepage": "https://github.com/mortezamasumi/fb-activity",
+    "support": {
+        "issues": "https://github.com/mortezamasumi/fb-activity/issues",
+        "source": "https://github.com/mortezamasumi/fb-activity"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Morteza Masumi",
+            "email": "morteza.masumi@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "filament/filament": "^4.0",
+        "spatie/laravel-package-tools": "^1.0"
+    },
+    "require-dev": {
+        "nunomaduro/collision": "^8.0",
+        "orchestra/testbench": "^10.0",
+        "pestphp/pest": "^3.0",
+        "pestphp/pest-plugin-arch": "^3.0",
+        "pestphp/pest-plugin-laravel": "^3.0",
+        "pestphp/pest-plugin-livewire": "^3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Mortezamasumi\\FbActivity\\": "src/",
+            "Mortezamasumi\\FbActivity\\Database\\Factories\\": "database/factories/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Mortezamasumi\\FbActivity\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "post-autoload-dump": "@php ./vendor/bin/testbench package:discover --ansi",
+        "test": "vendor/bin/pest",
+        "test-coverage": "vendor/bin/pest --coverage"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "phpstan/extension-installer": true
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Mortezamasumi\\FbActivity\\FbActivityServiceProvider"
+            ],
+            "aliases": {
+                "FbActivity": "Mortezamasumi\\FbActivity\\Facades\\FbActivity"
+            }
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
