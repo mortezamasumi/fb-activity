@@ -4,6 +4,7 @@ namespace Mortezamasumi\FbActivity;
 
 use Filament\Contracts\Plugin;
 use Filament\Panel;
+use Mortezamasumi\FbActivity\Resources\FbActivityResource;
 
 class FbActivityPlugin implements Plugin
 {
@@ -14,7 +15,10 @@ class FbActivityPlugin implements Plugin
 
     public function register(Panel $panel): void
     {
-        //
+        $panel
+            ->resources([
+                FbActivityResource::class,
+            ]);
     }
 
     public function boot(Panel $panel): void
