@@ -7,6 +7,7 @@ use Livewire\Features\SupportTesting\Testable;
 use Mortezamasumi\FbActivity\Policies\FbActivityPolicy;
 use Mortezamasumi\FbActivity\Testing\TestsFbActivity;
 use Spatie\Activitylog\Models\Activity;
+use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
@@ -18,6 +19,10 @@ class FbActivityServiceProvider extends PackageServiceProvider
     {
         $package
             ->name(static::$name)
+            ->hasInstallCommand(function (InstallCommand $command) {
+                $command
+                    ->publishConfigFile();
+            })
             ->hasConfigFile()
             ->hasTranslations();
     }
