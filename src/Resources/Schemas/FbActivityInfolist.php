@@ -7,6 +7,8 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Flex;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\FontWeight;
+use Filament\Support\Enums\TextSize;
 use Illuminate\Database\Eloquent\Model;
 use Mortezamasumi\FbActivity\Facades\FbActivity;
 use Mortezamasumi\FbPersian\Facades\FbPersian;
@@ -20,26 +22,40 @@ class FbActivityInfolist
                 Flex::make([
                     Section::make([
                         TextEntry::make('causer.name')
-                            ->label(__('fb-activity::fb-activity.columns.causer'))
-                            ->default('-'),
+                            ->label(__('fb-activity::fb-activity.infolist.causer'))
+                            ->default('-')
+                            ->weight(FontWeight::SemiBold)
+                            ->size(TextSize::Large),
                         TextEntry::make('subject_type')
-                            ->label(__('fb-activity::fb-activity.columns.subject'))
-                            ->formatStateUsing(fn (?Model $record, $state) => FbActivity::getSubject($record, $state)),
+                            ->label(__('fb-activity::fb-activity.infolist.subject'))
+                            ->formatStateUsing(fn (?Model $record, $state) => FbActivity::getSubject($record, $state))
+                            ->weight(FontWeight::SemiBold)
+                            ->size(TextSize::Large),
                         TextEntry::make('description')
-                            ->label(__('fb-activity::fb-activity.columns.description')),
+                            ->label(__('fb-activity::fb-activity.infolist.description'))
+                            ->weight(FontWeight::SemiBold)
+                            ->size(TextSize::Large),
                     ]),
                     Section::make([
                         TextEntry::make('log_name')
-                            ->label(__('fb-activity::fb-activity.columns.type'))
-                            ->formatStateUsing(fn (?Model $record): string => $record->log_name ? ucwords($record->log_name) : '-'),
+                            ->label(__('fb-activity::fb-activity.infolist.type'))
+                            ->formatStateUsing(fn (?Model $record): string => $record->log_name ? ucwords($record->log_name) : '-')
+                            ->weight(FontWeight::SemiBold)
+                            ->size(TextSize::Large),
                         TextEntry::make('event')
-                            ->label(__('fb-activity::fb-activity.columns.event'))
-                            ->formatStateUsing(fn (?Model $record): string => $record?->event ? ucwords($record?->event) : '-'),
+                            ->label(__('fb-activity::fb-activity.infolist.event'))
+                            ->formatStateUsing(fn (?Model $record): string => $record?->event ? ucwords($record?->event) : '-')
+                            ->weight(FontWeight::SemiBold)
+                            ->size(TextSize::Large),
                         TextEntry::make('created_at')
-                            ->label(__('fb-activity::fb-activity.columns.created_at'))
+                            ->label(__('fb-activity::fb-activity.infolist.created_at'))
                             ->formatStateUsing(fn ($state): string => FbPersian::jDateTime(null, $state))
-                    ])->grow(false),
-                ])->from('md'),
+                            ->weight(FontWeight::SemiBold)
+                            ->size(TextSize::Large)
+                    ])
+                        ->grow(false),
+                ])
+                    ->from('md'),
                 Section::make()
                     ->visible(fn ($record) => $record->properties?->count() > 0)
                     ->schema(fn (?Model $record) => $record

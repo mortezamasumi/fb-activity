@@ -2,19 +2,20 @@
 
 namespace Mortezamasumi\FbActivity\Resources;
 
+use BackedEnum;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Number;
 use Mortezamasumi\FbActivity\Resources\Pages\ListActivity;
 use Mortezamasumi\FbActivity\Resources\Pages\ViewActivity;
 use Mortezamasumi\FbActivity\Resources\Schemas\FbActivityInfolist;
 use Mortezamasumi\FbActivity\Resources\Table\FbActivitiesTable;
 use Spatie\Activitylog\Models\Activity;
+use UnitEnum;
 
 class FbActivityResource extends Resource implements HasShieldPermissions
 {
@@ -31,26 +32,6 @@ class FbActivityResource extends Resource implements HasShieldPermissions
         ];
     }
 
-    public static function getNavigationIcon(): string
-    {
-        return config('fb-activity.navigation.icon');
-    }
-
-    public static function getNavigationSort(): ?int
-    {
-        return config('fb-activity.navigation.sort');
-    }
-
-    public static function getNavigationLabel(): string
-    {
-        return __(config('fb-activity.navigation.label'));
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __(config('fb-activity.navigation.group'));
-    }
-
     public static function getModelLabel(): string
     {
         return __(config('fb-activity.navigation.model_label'));
@@ -61,11 +42,41 @@ class FbActivityResource extends Resource implements HasShieldPermissions
         return __(config('fb-activity.navigation.plural_model_label'));
     }
 
+    public static function getNavigationGroup(): string|UnitEnum|null
+    {
+        return __(config('fb-activity.navigation.group'));
+    }
+
+    public static function getNavigationParentItem(): ?string
+    {
+        return __(config('fb-activity.navigation.parent_item'));
+    }
+
+    public static function getNavigationIcon(): string|BackedEnum|Htmlable|null
+    {
+        return config('fb-activity.navigation.icon');
+    }
+
+    public static function getActiveNavigationIcon(): string|BackedEnum|Htmlable|null
+    {
+        return config('fb-activity.navigation.active_icon') ?? static::getNavigationIcon();
+    }
+
     public static function getNavigationBadge(): ?string
     {
-        return config('fb-activity.navigation.show_count')
+        return config('fb-activity.navigation.badge')
             ? Number::format(number: static::getModel()::count(), locale: App::getLocale())
             : null;
+    }
+
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return config('fb-activity.navigation.badge_tooltip');
+    }
+
+    public static function getNavigationSort(): ?int
+    {
+        return config('fb-activity.navigation.sort');
     }
 
     public static function infolist(Schema $schema): Schema
@@ -84,15 +95,5 @@ class FbActivityResource extends Resource implements HasShieldPermissions
             'index' => ListActivity::route('/'),
             'view' => ViewActivity::route('/{record}'),
         ];
-    }
-
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->when(
-                Auth::user()->can('view_all_users_fb::activity'),
-                fn (Builder $query) => $query,
-                fn (Builder $query) => $query->where('causer_id', '=', Auth::id()),
-            );
     }
 }
