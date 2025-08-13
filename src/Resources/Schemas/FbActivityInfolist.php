@@ -60,6 +60,13 @@ class FbActivityInfolist
                     ->visible(fn ($record) => $record->properties?->count() > 0)
                     ->schema(fn (?Model $record) => $record
                         ->properties
+                        ->mapWithKeys(fn ($value, $key) => [
+                            $key => collect($value)
+                                ->mapWithKeys(fn ($v, $k) => [
+                                    $k => is_array($v) ? json_encode($v) : $v
+                                ])
+                                ->toArray()
+                        ])
                         ->map(fn ($value, $key) => KeyValueEntry::make($key)->state($value))
                         ->toArray())
                     ->columns(1),
