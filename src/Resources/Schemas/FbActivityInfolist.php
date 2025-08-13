@@ -2,6 +2,7 @@
 
 namespace Mortezamasumi\FbActivity\Resources\Schemas;
 
+use Carbon\Carbon;
 use Filament\Infolists\Components\KeyValueEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Flex;
@@ -62,9 +63,16 @@ class FbActivityInfolist
                         ->properties
                         ->mapWithKeys(fn ($value, $key) => [
                             $key => collect($value)
-                                ->mapWithKeys(fn ($v, $k) => [
-                                    $k => is_array($v) ? json_encode($v) : $v
-                                ])
+                                ->mapWithKeys(function ($v, $k) {
+                                    try {
+                                        throw_unless(preg_match('/[- \/]/', $v));
+                                        $v = FbPersian::jDateTime(null, Carbon::parse($v));
+                                    } catch (\Exception $e) {
+                                        $v = is_array($v) ? json_encode($v) : $v;
+                                    }
+
+                                    return [$k => $v];
+                                })
                                 ->toArray()
                         ])
                         ->map(fn ($value, $key) => KeyValueEntry::make($key)->state($value))
