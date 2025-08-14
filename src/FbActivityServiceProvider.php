@@ -24,7 +24,7 @@ class FbActivityServiceProvider extends PackageServiceProvider
                 $command
                     ->publishConfigFile();
 
-                Artisan::call('vendor:publish --provider="Spatie\Activitylog\ActivitylogServiceProvider" --tag="activitylog-migrations"');
+                Artisan::call('publish:vendor --provider="Spatie\Activitylog\ActivitylogServiceProvider" --tag="activitylog-migrations"');
             })
             ->hasConfigFile()
             ->hasTranslations();
