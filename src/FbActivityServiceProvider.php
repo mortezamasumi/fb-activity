@@ -2,6 +2,7 @@
 
 namespace Mortezamasumi\FbActivity;
 
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Features\SupportTesting\Testable;
 use Mortezamasumi\FbActivity\Policies\FbActivityPolicy;
@@ -22,6 +23,8 @@ class FbActivityServiceProvider extends PackageServiceProvider
             ->hasInstallCommand(function (InstallCommand $command) {
                 $command
                     ->publishConfigFile();
+
+                Artisan::call('vendor:publish --provider="Spatie\Activitylog\ActivitylogServiceProvider" --tag="activitylog-migrations"');
             })
             ->hasConfigFile()
             ->hasTranslations();
