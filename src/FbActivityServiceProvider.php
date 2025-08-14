@@ -22,9 +22,11 @@ class FbActivityServiceProvider extends PackageServiceProvider
             ->name(static::$name)
             ->hasInstallCommand(function (InstallCommand $command) {
                 $command
-                    ->publishConfigFile();
+                    ->publishConfigFile()
+                    ->publishMigrations();
             })
             ->hasConfigFile()
+            ->hasMigrations($this->getMigrations())
             ->hasTranslations();
     }
 
@@ -33,5 +35,15 @@ class FbActivityServiceProvider extends PackageServiceProvider
         Gate::policy(Activity::class, FbActivityPolicy::class);
 
         Testable::mixin(new TestsFbActivity);
+    }
+
+    /**
+     * @return array<string>
+     */
+    protected function getMigrations(): array
+    {
+        return [
+            'create_activity_log_table',
+        ];
     }
 }
