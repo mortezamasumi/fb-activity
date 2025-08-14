@@ -2,7 +2,6 @@
 
 namespace Mortezamasumi\FbActivity;
 
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Features\SupportTesting\Testable;
 use Mortezamasumi\FbActivity\Policies\FbActivityPolicy;
