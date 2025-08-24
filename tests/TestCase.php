@@ -14,10 +14,10 @@ use Filament\Widgets\WidgetsServiceProvider;
 use Filament\FilamentServiceProvider;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Livewire\LivewireServiceProvider;
-use Orchestra\Testbench\TestCase as Orchestra;
-use RyanChandler\BladeCaptureDirective\BladeCaptureDirectiveServiceProvider;
 use Mortezamasumi\FbActivity\Tests\Services\FbActivityPanelProvider;
 use Mortezamasumi\FbActivity\FbActivityServiceProvider;
+use Orchestra\Testbench\TestCase as Orchestra;
+use RyanChandler\BladeCaptureDirective\BladeCaptureDirectiveServiceProvider;
 
 use function Orchestra\Testbench\default_migration_path;
 
@@ -35,8 +35,8 @@ class TestCase extends Orchestra
     protected function defineEnvironment($app)
     {
         // config()->set('app.key', 'base64:Hupx3yAySikrM2/edkZQNQHslgDWYfiBfCuSThJ5SK8=');
-        config()->set('database.default', 'testing');
-        config()->set('queue.batching.database', 'testing');
+        // config()->set('database.default', 'testing');
+        // config()->set('queue.batching.database', 'testing');
         // config()->set('auth.providers.users.model', '\Tests\Models\User');
 
         /*
