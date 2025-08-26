@@ -64,6 +64,13 @@ class FbActivityInfolist
                         ->mapWithKeys(fn ($value, $key) => [
                             $key => collect($value)
                                 ->mapWithKeys(function ($v, $k) {
+                                    $v = match (true) {
+                                        is_string($v) => $v,
+                                        is_null($v) => '',
+                                        is_bool($v) => $v ? '1' : '0',
+                                        is_array($v), is_object($v) => json_encode($v, JSON_UNESCAPED_UNICODE),
+                                        default => (string) $v
+                                    };
                                     try {
                                         throw_unless(preg_match('/[- \/]/', $v));
                                         $v = FbPersian::jDateTime(null, Carbon::parse($v));
