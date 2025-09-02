@@ -10,7 +10,7 @@ return [
         'active_icon' => null,
         'badge' => false,
         'badge_tooltip' => null,
-        'sort' => 9900,
+        'sort' => 9999,
     ],
     'export' => [
         'exporter' => '\Mortezamasumi\FbActivity\Exports\ActivityExporter',
