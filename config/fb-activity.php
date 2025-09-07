@@ -7,7 +7,7 @@ return [
         'group' => 'fb-activity::fb-activity.navigation.group',
         'parent_item' => null,
         'icon' => 'heroicon-o-queue-list',
-        'active_icon' => null,
+        'active_icon' => 'heroicon-s-queue-list',
         'badge' => false,
         'badge_tooltip' => null,
         'sort' => 9999,
