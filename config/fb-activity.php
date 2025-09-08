@@ -10,7 +10,7 @@ return [
         'active_icon' => 'heroicon-s-queue-list',
         'badge' => false,
         'badge_tooltip' => null,
-        'sort' => 9999,
+        'sort' => 20,
     ],
     'export' => [
         'exporter' => '\Mortezamasumi\FbActivity\Exports\ActivityExporter',
