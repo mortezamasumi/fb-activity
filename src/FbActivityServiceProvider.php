@@ -5,6 +5,7 @@ namespace Mortezamasumi\FbActivity;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Features\SupportTesting\Testable;
 use Mortezamasumi\FbActivity\Policies\FbActivityPolicy;
+use Mortezamasumi\FbActivity\Resources\FbActivityResource;
 use Mortezamasumi\FbActivity\Testing\TestsFbActivity;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
@@ -31,6 +32,14 @@ class FbActivityServiceProvider extends PackageServiceProvider
 
     public function packageBooted(): void
     {
+        config(['filament-shield.resources.manage' => [FbActivityResource::class => [
+            'view',
+            'viewAny',
+            'delete',
+            'export',
+            'viewAllUsers',
+        ]]]);
+
         Gate::policy(Activity::class, FbActivityPolicy::class);
 
         Testable::mixin(new TestsFbActivity);

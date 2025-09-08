@@ -25,7 +25,7 @@ class FbActivitiesTable
         return $table
             ->modifyQueryUsing(fn ($query) => $query
                 ->unless(
-                    Auth::user()->can('view_all_users_fb::activity'),
+                    Auth::user()->can('ViewAllUsers:Activity'),
                     fn (Builder $query) => $query->where('causer_id', '=', Auth::id()),
                 ))
             ->columns([
@@ -70,7 +70,7 @@ class FbActivitiesTable
                                     ->whereAny(['name', 'reverseName', 'first_name', 'last_name', 'profile'], 'like', "%{$search}%")
                             )
                         ))
-                    ->visible(Auth::user()->can('view_all_users_fb::activity')),
+                    ->visible(Auth::user()->can('ViewAllUsers:Activity')),
                 TextColumn::make('created_at')
                     ->label(__('fb-activity::fb-activity.table.created_at'))
                     ->jDateTime()
@@ -139,10 +139,10 @@ class FbActivitiesTable
                         fn (Builder $query) => $query->whereNotNull('causer_id')
                     )
                     ->getOptionLabelFromRecordUsing(fn (Model $record) => $record->causer?->name ?? '-')
-                    ->visible(Auth::user()->can('view_all_users_fb::activity')),
+                    ->visible(Auth::user()->can('ViewAllUsers:Activity')),
             ])
             ->headerActions([
-                DeleteBulkAction::make()->visible(Auth::user()->can('delete_fb::activity')),
+                DeleteBulkAction::make()->visible(Auth::user()->can('Delete:Activity')),
             ])
             ->defaultSort('created_at', 'desc')
             ->persistSortInSession()

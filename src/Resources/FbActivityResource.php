@@ -2,7 +2,6 @@
 
 namespace Mortezamasumi\FbActivity\Resources;
 
-use BackedEnum;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -15,22 +14,12 @@ use Mortezamasumi\FbActivity\Resources\Pages\ViewActivity;
 use Mortezamasumi\FbActivity\Resources\Schemas\FbActivityInfolist;
 use Mortezamasumi\FbActivity\Resources\Table\FbActivitiesTable;
 use Spatie\Activitylog\Models\Activity;
+use BackedEnum;
 use UnitEnum;
 
-class FbActivityResource extends Resource implements HasShieldPermissions
+class FbActivityResource extends Resource
 {
     protected static ?string $model = Activity::class;
-
-    public static function getPermissionPrefixes(): array
-    {
-        return [
-            'view',
-            'view_any',
-            'delete',
-            'export',
-            'view_all_users',
-        ];
-    }
 
     public static function getModelLabel(): string
     {

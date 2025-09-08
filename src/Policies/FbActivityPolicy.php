@@ -1,36 +1,39 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Mortezamasumi\FbActivity\Policies;
 
 use Illuminate\Auth\Access\HandlesAuthorization;
+use Illuminate\Foundation\Auth\User as AuthUser;
 use Spatie\Activitylog\Models\Activity;
 
 class FbActivityPolicy
 {
     use HandlesAuthorization;
 
-    public function viewAny($user): bool
+    public function viewAny(AuthUser $authUser): bool
     {
-        return $user->can('view_any_fb::activity');
+        return $authUser->can('ViewAny:Activity');
     }
 
-    public function view($user, Activity $activity): bool
+    public function view(AuthUser $authUser, Activity $activity): bool
     {
-        return $user->can('view_fb::activity');
+        return $authUser->can('View:Activity');
     }
 
-    public function delete($user, Activity $activity): bool
+    public function delete(AuthUser $authUser, Activity $activity): bool
     {
-        return $user->can('delete_fb::activity');
+        return $authUser->can('Delete:Activity');
     }
 
-    public function export($user): bool
+    public function export(AuthUser $authUser): bool
     {
-        return $user->can('export_fb::activity');
+        return $authUser->can('Export:Activity');
     }
 
-    public function viewAllUsers($user): bool
+    public function viewAllUsers(AuthUser $authUser): bool
     {
-        return $user->can('view_all_users_fb::activity');
+        return $authUser->can('ViewAllUsers:Activity');
     }
 }
