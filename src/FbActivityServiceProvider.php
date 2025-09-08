@@ -32,13 +32,16 @@ class FbActivityServiceProvider extends PackageServiceProvider
 
     public function packageBooted(): void
     {
-        config(['filament-shield.resources.manage' => [FbActivityResource::class => [
-            'view',
-            'viewAny',
-            'delete',
-            'export',
-            'viewAllUsers',
-        ]]]);
+        config(['filament-shield.resources.manage' => [
+            ...config('filament-shield.resources.manage'),
+            FbActivityResource::class => [
+                'view',
+                'viewAny',
+                'delete',
+                'export',
+                'viewAllUsers',
+            ]
+        ]]);
 
         Gate::policy(Activity::class, FbActivityPolicy::class);
 
