@@ -30,6 +30,9 @@ class FbActivity
             $subjectName = $record->subject_id;
         }
 
-        return $this->getSubjectName($record, $state).' -> '.$subjectName;
+        return __('subject :subjectClass :subjectTitle', [
+            'subjectClass' => $this->getSubjectName($record, $state),
+            'subjectTitle' => $subjectName,
+        ]);
     }
 }

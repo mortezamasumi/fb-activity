@@ -16,6 +16,7 @@ return [
         'properties' => 'مقادیر',
         'description' => 'توضیح',
         'created_at' => 'زمان ایجاد',
+        'subject :subjectClass :subjectTitle' => ':subjectClass ↢ :subjectTitle',
     ],
     'table' => [
         'type' => 'نوع',

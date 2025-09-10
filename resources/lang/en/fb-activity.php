@@ -16,6 +16,7 @@ return [
         'properties' => 'Properties',
         'description' => 'Description',
         'created_at' => 'Created At',
+        'subject :subjectClass :subjectTitle' => ':subjectClass ↣ :subjectTitle',
     ],
     'table' => [
         'type' => 'Type',
