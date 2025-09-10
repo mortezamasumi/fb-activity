@@ -33,7 +33,7 @@ class FbActivityServiceProvider extends PackageServiceProvider
     public function packageBooted(): void
     {
         config(['filament-shield.resources.manage' => [
-            ...config('filament-shield.resources.manage'),
+            ...config('filament-shield.resources.manage') ?? [],
             FbActivityResource::class => [
                 'view',
                 'viewAny',
