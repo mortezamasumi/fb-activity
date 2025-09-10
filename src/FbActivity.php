@@ -30,9 +30,15 @@ class FbActivity
             $subjectName = $record->subject_id;
         }
 
-        return __('subject :subjectClass :subjectTitle', [
-            'subjectClass' => $this->getSubjectName($record, $state),
-            'subjectTitle' => $subjectName,
+        $sn = $this->getSubjectName($record, $state);
+
+        if ($sn === '-') {
+            return null;
+        }
+
+        return __('fb-activity::fb-activity.infolist.subject_name', [
+            'a' => $this->getSubjectName($record, $state),
+            'b' => $subjectName,
         ]);
     }
 }
