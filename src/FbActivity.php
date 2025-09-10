@@ -25,7 +25,7 @@ class FbActivity
         if (class_exists($state)) {
             $subjectModel = $state::find($record->subject_id);
 
-            $subjectName = $subjectModel?->name ?? '-';
+            $subjectName = $subjectModel?->name ?? $subjectModel?->title ?? $subjectModel?->text ?? '-';
         } else {
             $subjectName = $record->subject_id;
         }
