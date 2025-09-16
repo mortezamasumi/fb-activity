@@ -12,7 +12,7 @@ use Filament\Support\Enums\FontWeight;
 use Filament\Support\Enums\TextSize;
 use Illuminate\Database\Eloquent\Model;
 use Mortezamasumi\FbActivity\Facades\FbActivity;
-use Mortezamasumi\FbPersian\Facades\FbPersian;
+use Mortezamasumi\FbEssentials\Facades\FbPersian;
 
 class FbActivityInfolist
 {

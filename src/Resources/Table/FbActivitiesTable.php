@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Mortezamasumi\FbActivity\Facades\FbActivity;
-use Mortezamasumi\FbPersian\Facades\FbPersian;
+use Mortezamasumi\FbEssentials\Facades\FbPersian;
 use Spatie\Activitylog\Models\Activity;
 
 class FbActivitiesTable
