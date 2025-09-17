@@ -50,7 +50,7 @@ class FbActivityInfolist
                             ->size(TextSize::Large),
                         TextEntry::make('created_at')
                             ->label(__('fb-activity::fb-activity.infolist.created_at'))
-                            ->formatStateUsing(fn ($state): string => FbPersian::jDateTime(null, $state))
+                            ->jDateTime()
                             ->weight(FontWeight::SemiBold)
                             ->size(TextSize::Large)
                     ])
