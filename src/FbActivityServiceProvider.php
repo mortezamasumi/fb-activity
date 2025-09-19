@@ -7,6 +7,7 @@ use Livewire\Features\SupportTesting\Testable;
 use Mortezamasumi\FbActivity\Policies\FbActivityPolicy;
 use Mortezamasumi\FbActivity\Resources\FbActivityResource;
 use Mortezamasumi\FbActivity\Testing\TestsFbActivity;
+use Mortezamasumi\FbEssentials\Facades\FbEssentials;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
@@ -32,16 +33,17 @@ class FbActivityServiceProvider extends PackageServiceProvider
 
     public function packageBooted(): void
     {
-        config(['filament-shield.resources.manage' => [
-            ...config('filament-shield.resources.manage') ?? [],
-            FbActivityResource::class => [
+        FbEssentials::filamentShieldAddResource(
+            FbActivityResource::class,
+            [
                 'view',
                 'viewAny',
                 'delete',
                 'export',
                 'viewAllUsers',
-            ]
-        ]]);
+            ],
+            true
+        );
 
         Gate::policy(Activity::class, FbActivityPolicy::class);
 
