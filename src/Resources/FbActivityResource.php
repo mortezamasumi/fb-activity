@@ -2,7 +2,6 @@
 
 namespace Mortezamasumi\FbActivity\Resources;
 
-use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
@@ -53,9 +52,13 @@ class FbActivityResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        return config('fb-activity.navigation.badge')
-            ? Number::format(number: static::getModel()::count(), locale: App::getLocale())
-            : null;
+        if (! config('fb-activity.navigation.badge')) {
+            return null;
+        }
+
+        Number::useLocale(App::getLocale());
+
+        return Number::format(static::getModel()::count());
     }
 
     public static function getNavigationBadgeTooltip(): ?string

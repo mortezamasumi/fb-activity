@@ -5,6 +5,7 @@ namespace Mortezamasumi\FbActivity\Tests\Services;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -15,6 +16,7 @@ use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Mortezamasumi\FbActivity\FbActivityPlugin;
+use Mortezamasumi\FbEssentials\FbEssentialsPlugin;
 
 class FbActivityPanelProvider extends PanelProvider
 {
@@ -22,8 +24,11 @@ class FbActivityPanelProvider extends PanelProvider
     {
         return $panel
             ->default()
-            ->id('admin')
+            ->id('/')
             ->login()
+            ->pages([
+                Dashboard::class,
+            ])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
@@ -39,6 +44,7 @@ class FbActivityPanelProvider extends PanelProvider
                 Authenticate::class,
             ])
             ->plugins([
+                // FbEssentialsPlugin::make(),
                 FbActivityPlugin::make(),
             ]);
     }

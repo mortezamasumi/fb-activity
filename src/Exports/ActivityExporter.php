@@ -2,17 +2,16 @@
 
 namespace Mortezamasumi\FbActivity\Exports;
 
-use Filament\Actions\Exports\Models\Export;
 use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\App;
-use Illuminate\Support\Number;
-use Illuminate\Support\Str;
+use Mortezamasumi\FbEssentials\Traits\ExportCompletedNotificationBody;
 use Spatie\Activitylog\Models\Activity;
 
 class ActivityExporter extends Exporter
 {
+    use ExportCompletedNotificationBody;
+
     protected static ?string $model = Activity::class;
 
     public static function getColumns(): array
@@ -39,28 +38,5 @@ class ActivityExporter extends Exporter
                 ->label(__('fb-activity::fb-activity.table.created_at'))
                 ->jDateTime(),
         ];
-    }
-
-    public static function getCompletedNotificationBody(Export $export): string
-    {
-        if (App::getLocale() === 'fa') {
-            $body = 'برون برد انجام شد و '.Number::format(number: number_format($export->successful_rows), locale: App::getLocale()).' سطر ایجاد شد';
-
-            if ($failedRowsCount = $export->getFailedRowsCount()) {
-                $postfix = $failedRowsCount > 1 ? '' : '';
-
-                $body .= 'و تعداد '
-                    .Number::format(number: number_format($failedRowsCount), locale: App::getLocale())
-                    .' سطر دارای خطا بود و ایجاد نشد';
-            }
-        } else {
-            $body = 'Your education export has completed and '.number_format($export->successful_rows).' '.Str::plural('row', $export->successful_rows).' exported.';
-
-            if ($failedRowsCount = $export->getFailedRowsCount()) {
-                $body .= ' '.number_format($failedRowsCount).' '.Str::plural('row', $failedRowsCount).' failed to export.';
-            }
-        }
-
-        return $body;
     }
 }
