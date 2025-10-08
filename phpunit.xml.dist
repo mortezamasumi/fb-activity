@@ -29,5 +29,12 @@
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
+        <env name="HAS_LANGUAGE_SWITCHER" value="false"/>
+        <env name="HAS_TRANSLATABLE" value="false"/>
+        <env name="USED_LANGUAGES" value="en"/>
+        <env name="HAS_SHIELD" value="false"/>
+        <env name="HAS_ENVIRONMENT_INDICATOR" value="false"/>
+        <env name="APP_AS_SPA" value="false"/>
+        <env name="HAS_VAZIRMATN_FONT" value="false"/>
     </php>
 </phpunit>

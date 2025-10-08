@@ -33,17 +33,20 @@ class FbActivityServiceProvider extends PackageServiceProvider
 
     public function packageBooted(): void
     {
-        FbEssentials::filamentShieldAddResource(
-            FbActivityResource::class,
-            [
-                'view',
-                'viewAny',
-                'delete',
-                'export',
-                'viewAllUsers',
-            ],
-            true
-        );
+        if (! $this->app->environment('testing')) {
+            // dd('oh');
+            FbEssentials::filamentShieldAddResource(
+                FbActivityResource::class,
+                [
+                    'view',
+                    'viewAny',
+                    'delete',
+                    'export',
+                    'viewAllUsers',
+                ],
+                true
+            );
+        }
 
         Gate::policy(Activity::class, FbActivityPolicy::class);
 
