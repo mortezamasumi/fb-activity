@@ -2,34 +2,33 @@
 
 use Illuminate\Support\Facades\Gate;
 use Mortezamasumi\FbActivity\Facades\FbActivity;
+use Mortezamasumi\FbActivity\Resources\FbActivityResource;
 use Mortezamasumi\FbActivity\Resources\Pages\ListActivity;
 use Mortezamasumi\FbActivity\Resources\Pages\ViewActivity;
-use Mortezamasumi\FbActivity\Resources\FbActivityResource;
 use Mortezamasumi\FbActivity\Tests\Services\Podcast;
 use Mortezamasumi\FbActivity\Tests\Services\User;
+use Mortezamasumi\FbEssentials\Facades\FbPersian;
 
-it('can render index page', function () {
+beforeEach(function () {
     Gate::before(fn () => true);
 
+    $this->actingAs(User::factory()->create());
+});
+
+it('can render index page', function () {
     $this
-        ->actingAs(User::factory()->create())
         ->get(FbActivityResource::getUrl('index'))
         ->assertSuccessful();
 });
 
 it('can show empty table', function () {
-    Gate::before(fn () => true);
-
     $this
-        ->actingAs(User::factory()->create())
         ->livewire(ListActivity::class)
         ->assertCanSeeTableRecords([])
         ->assertCountTableRecords(0);
 });
 
 it('can show data in table', function () {
-    Gate::before(fn () => true);
-
     $podcast = Podcast::factory()->create();
 
     $count = 6;
@@ -39,34 +38,31 @@ it('can show data in table', function () {
     }
 
     $this
-        ->actingAs(User::factory()->create())
         ->livewire(ListActivity::class)
         ->assertCanSeeTableRecords($podcast->activities)
         ->assertCountTableRecords($count);
 });
 
 it('can view by url', function () {
-    Gate::before(fn () => true);
-
-    $podcast = Podcast::factory()->create();
+    $activity = Podcast::factory()->create()->activities->first();
 
     $this
-        ->actingAs(User::factory()->create())
         ->get(FbActivityResource::getUrl('view', [
-            'record' => $podcast->activities->first(),
+            'record' => $activity->getRouteKey(),
         ]))
         ->assertSuccessful();
 });
 
 it('can retrieve data', function () {
-    Gate::before(fn () => true);
-
     $activity = Podcast::factory()->create()->activities->first();
 
     $this
-        ->actingAs(User::factory()->create())
         ->livewire(ViewActivity::class, [
             'record' => $activity->getRouteKey(),
         ])
-        ->assertSeeText(FbActivity::getSubject($activity, $activity['subject_type']));
+        ->assertSeeText(FbActivity::getSubject($activity, $activity['subject_type']))
+        ->assertSeeText($activity->description)
+        ->assertSeeText(ucwords($activity->log_name))
+        ->assertSeeText(ucwords($activity->event))
+        ->assertSeeText(FbPersian::jDateTime(null, $activity->created_at));
 });
