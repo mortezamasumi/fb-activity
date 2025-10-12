@@ -14,7 +14,6 @@ use Mortezamasumi\FbEssentials\FbEssentialsPlugin;
 use Mortezamasumi\FbEssentials\FbEssentialsServiceProvider;
 use Orchestra\Testbench\TestCase as TestbenchTestCase;
 use Spatie\Activitylog\ActivitylogServiceProvider;
-use Spatie\Permission\PermissionServiceProvider;
 
 class TestCase extends TestbenchTestCase
 {
@@ -26,10 +25,7 @@ class TestCase extends TestbenchTestCase
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->boolean('force_change_password')->default(false);
-            $table->rememberToken();
             $table->timestamps();
         });
 
@@ -47,20 +43,6 @@ class TestCase extends TestbenchTestCase
                 ->default()
                 ->pages([
                     Dashboard::class,
-                ])
-                ->middleware([
-                    \Illuminate\Cookie\Middleware\EncryptCookies::class,
-                    \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
-                    \Illuminate\Session\Middleware\StartSession::class,
-                    \Filament\Http\Middleware\AuthenticateSession::class,
-                    \Illuminate\View\Middleware\ShareErrorsFromSession::class,
-                    \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class,
-                    \Illuminate\Routing\Middleware\SubstituteBindings::class,
-                    \Filament\Http\Middleware\DisableBladeIconComponents::class,
-                    \Filament\Http\Middleware\DispatchServingFilamentEvent::class,
-                ])
-                ->authMiddleware([
-                    \Filament\Http\Middleware\Authenticate::class,
                 ])
                 ->plugins([
                     FbEssentialsPlugin::make(),
