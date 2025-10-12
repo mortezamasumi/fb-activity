@@ -4,7 +4,6 @@ namespace Mortezamasumi\FbActivity\Tests\Services;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class UserFactory extends Factory
 {
