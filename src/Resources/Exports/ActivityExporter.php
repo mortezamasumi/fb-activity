@@ -1,6 +1,6 @@
 <?php
 
-namespace Mortezamasumi\FbActivity\Exports;
+namespace Mortezamasumi\FbActivity\Resources\Exports;
 
 use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;

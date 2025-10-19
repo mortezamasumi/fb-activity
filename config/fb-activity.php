@@ -13,7 +13,7 @@ return [
         'sort' => 20,
     ],
     'export' => [
-        'exporter' => '\Mortezamasumi\FbActivity\Exports\ActivityExporter',
+        'exporter' => '\Mortezamasumi\FbActivity\Resources\Exports\ActivityExporter',
         'max_export_rows' => env('ACTIVITY_MAX_EXPORT_ROWS', 3000),
     ]
 ];
