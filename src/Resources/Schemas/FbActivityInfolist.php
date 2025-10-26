@@ -12,7 +12,6 @@ use Filament\Support\Enums\FontWeight;
 use Filament\Support\Enums\TextSize;
 use Illuminate\Database\Eloquent\Model;
 use Mortezamasumi\FbActivity\Facades\FbActivity;
-use Mortezamasumi\FbEssentials\Facades\FbPersian;
 
 class FbActivityInfolist
 {
@@ -73,7 +72,7 @@ class FbActivityInfolist
                                     };
                                     try {
                                         throw_unless(preg_match('/[- \/]/', $v));
-                                        $v = FbPersian::jDateTime(null, Carbon::parse($v));
+                                        $v = __jdatetime(null, Carbon::parse($v));
                                     } catch (\Exception $e) {
                                         $v = is_array($v) ? json_encode($v) : $v;
                                     }
