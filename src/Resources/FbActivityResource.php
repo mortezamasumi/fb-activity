@@ -6,6 +6,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Number;
 use Mortezamasumi\FbActivity\Resources\Pages\ListActivity;
@@ -52,7 +53,7 @@ class FbActivityResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        if (! config('fb-activity.navigation.badge')) {
+        if (!config('fb-activity.navigation.badge')) {
             return null;
         }
 
@@ -87,5 +88,19 @@ class FbActivityResource extends Resource
             'index' => ListActivity::route('/'),
             'view' => ViewActivity::route('/{record}'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->when(
+                function_exists('__fb_setting'),
+                fn(Builder $query) => $query
+                    ->where(
+                        'creted_at',
+                        '>=',
+                        now()->subMonths(__fb_setting('max-recent-months-show-log', 6))
+                    )
+            );
     }
 }
