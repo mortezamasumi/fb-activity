@@ -97,7 +97,7 @@ class FbActivityResource extends Resource
                 function_exists('__fb_setting'),
                 fn(Builder $query) => $query
                     ->where(
-                        'creted_at',
+                        'created_at',
                         '>=',
                         now()->subMonths(__fb_setting('max-recent-months-show-log', 6))
                     )
