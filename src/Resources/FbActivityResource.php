@@ -8,6 +8,7 @@ use Filament\Tables\Table;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Number;
 use Mortezamasumi\FbActivity\Resources\Pages\ListActivity;
 use Mortezamasumi\FbActivity\Resources\Pages\ViewActivity;
@@ -90,14 +91,10 @@ class FbActivityResource extends Resource
         ];
     }
 
-    public static function toLikePattern(string $pattern): string
-    {
-        return str_replace(['*', '?'], ['%', '_'], $pattern);
-    }
-
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery()
+            ->with(['causer', 'subject'])
             ->when(
                 function_exists('__fb_setting'),
                 fn(Builder $query) => $query
@@ -106,41 +103,36 @@ class FbActivityResource extends Resource
                         '>=',
                         now()->subMonths(__fb_setting('max-recent-months-show-log', 6))
                     )
+            )
+            ->unless(
+                Auth::user()->can('ViewAllUsers:Activity'),
+                fn(Builder $query) => $query->where('causer_id', '=', Auth::id()),
             );
 
-        if (!empty(trim(config('fb-activity.include_logs')))) {
-            $includePatterns = array_filter(
-                array_map(
-                    'trim',
-                    explode(
-                        ',',
-                        config('fb-activity.include_logs')
-                    )
-                )
-            );
+        $include_logs = config('fb-activity.include_logs');
+        $exclude_logs = config('fb-activity.exclude_logs');
 
-            if (!empty($include_patterns)) {
-                $query->where(function ($q) use ($includePatterns) {
-                    foreach ($includePatterns as $pattern) {
-                        $q->orWhere('event', 'LIKE', static::toLikePattern($pattern));
-                    }
-                });
-            }
+        $convertWildcards = function ($pattern) {
+            $pattern = trim($pattern);
+            $pattern = str_replace('*', '%', $pattern);
+            $pattern = str_replace('?', '_', $pattern);
+            return $pattern;
+        };
+
+        $includes = $include_logs ? array_filter(explode(',', $include_logs)) : [];
+        $excludes = $exclude_logs ? array_filter(explode(',', $exclude_logs)) : [];
+
+        if (!empty($includes)) {
+            $query->where(function (Builder $q) use ($includes, $convertWildcards) {
+                foreach ($includes as $pattern) {
+                    $q->orWhere('description', 'LIKE', $convertWildcards($pattern));
+                }
+            });
         }
 
-        if (!empty(trim(config('fb-activity.exclude_logs')))) {
-            $excludePatterns = array_filter(
-                array_map(
-                    'trim',
-                    explode(
-                        ',',
-                        config('fb-activity.exclude_logs')
-                    )
-                )
-            );
-
-            foreach ($excludePatterns as $pattern) {
-                $query->where('event', 'NOT LIKE', static::toLikePattern($pattern));
+        if (!empty($excludes)) {
+            foreach ($excludes as $pattern) {
+                $query->where('description', 'NOT LIKE', $convertWildcards($pattern));
             }
         }
 
