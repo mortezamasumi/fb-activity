@@ -90,9 +90,14 @@ class FbActivityResource extends Resource
         ];
     }
 
+    public static function toLikePattern(string $pattern): string
+    {
+        return str_replace(['*', '?'], ['%', '_'], $pattern);
+    }
+
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
+        $query = parent::getEloquentQuery()
             ->when(
                 function_exists('__fb_setting'),
                 fn(Builder $query) => $query
@@ -102,5 +107,43 @@ class FbActivityResource extends Resource
                         now()->subMonths(__fb_setting('max-recent-months-show-log', 6))
                     )
             );
+
+        if (!empty(trim(config('fb-activity.include_logs')))) {
+            $includePatterns = array_filter(
+                array_map(
+                    'trim',
+                    explode(
+                        ',',
+                        config('fb-activity.include_logs')
+                    )
+                )
+            );
+
+            if (!empty($include_patterns)) {
+                $query->where(function ($q) use ($includePatterns) {
+                    foreach ($includePatterns as $pattern) {
+                        $q->orWhere('event', 'LIKE', static::toLikePattern($pattern));
+                    }
+                });
+            }
+        }
+
+        if (!empty(trim(config('fb-activity.exclude_logs')))) {
+            $excludePatterns = array_filter(
+                array_map(
+                    'trim',
+                    explode(
+                        ',',
+                        config('fb-activity.exclude_logs')
+                    )
+                )
+            );
+
+            foreach ($excludePatterns as $pattern) {
+                $query->where('event', 'NOT LIKE', static::toLikePattern($pattern));
+            }
+        }
+
+        return $query;
     }
 }

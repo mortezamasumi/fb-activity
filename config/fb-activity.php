@@ -15,5 +15,7 @@ return [
     'export' => [
         'exporter' => '\Mortezamasumi\FbActivity\Resources\Exports\ActivityExporter',
         'max_export_rows' => env('ACTIVITY_MAX_EXPORT_ROWS', 3000),
-    ]
+    ],
+    'exclude_logs' => env('ACTIVITY_EXCLUDE_LOGS', null),
+    'include_logs' => env('ACTIVITY_INCLUDE_LOGS', null),
 ];
