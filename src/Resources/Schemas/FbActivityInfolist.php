@@ -15,6 +15,38 @@ use Mortezamasumi\FbActivity\Facades\FbActivity;
 
 class FbActivityInfolist
 {
+    private static function isDateString($value): bool
+    {
+        if (!is_string($value)) {
+            return false;
+        }
+
+        $dateLikePattern = '/^\d{1,4}[-\/]\d{1,2}[-\/]\d{2,4}$/';
+
+        if (!preg_match($dateLikePattern, $value)) {
+            return false;
+        }
+
+        $formats = [
+            'Y-m-d',
+            'Y/m/d',
+            'd-m-Y',
+            'd/m/Y',
+            'm-d-Y',
+            'm/d/Y',
+            'Y-m-d H:i:s',
+        ];
+
+        foreach ($formats as $format) {
+            $date = Carbon::createFromFormat($format, $value);
+            if ($date && $date->format($format) === $value) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public static function configure(Schema $schema): Schema
     {
         return $schema
@@ -28,7 +60,7 @@ class FbActivityInfolist
                             ->size(TextSize::Large),
                         TextEntry::make('subject_type')
                             ->label(__('fb-activity::fb-activity.infolist.subject'))
-                            ->formatStateUsing(fn (?Model $record, $state) => FbActivity::getSubject($record, $state))
+                            ->formatStateUsing(fn(?Model $record, $state) => FbActivity::getSubject($record, $state))
                             ->weight(FontWeight::SemiBold)
                             ->size(TextSize::Large),
                         TextEntry::make('description')
@@ -39,12 +71,12 @@ class FbActivityInfolist
                     Section::make([
                         TextEntry::make('log_name')
                             ->label(__('fb-activity::fb-activity.infolist.type'))
-                            ->formatStateUsing(fn (?Model $record): string => $record->log_name ? ucwords($record->log_name) : '-')
+                            ->formatStateUsing(fn(?Model $record): string => $record->log_name ? ucwords($record->log_name) : '-')
                             ->weight(FontWeight::SemiBold)
                             ->size(TextSize::Large),
                         TextEntry::make('event')
                             ->label(__('fb-activity::fb-activity.infolist.event'))
-                            ->formatStateUsing(fn (?Model $record): string => $record?->event ? ucwords($record?->event) : '-')
+                            ->formatStateUsing(fn(?Model $record): string => $record?->event ? ucwords($record?->event) : '-')
                             ->weight(FontWeight::SemiBold)
                             ->size(TextSize::Large),
                         TextEntry::make('created_at')
@@ -57,10 +89,10 @@ class FbActivityInfolist
                 ])
                     ->from('md'),
                 Section::make()
-                    ->visible(fn ($record) => $record->properties?->count() > 0)
-                    ->schema(fn (?Model $record) => $record
+                    ->visible(fn($record) => $record->properties?->count() > 0)
+                    ->schema(fn(?Model $record) => $record
                         ->properties
-                        ->mapWithKeys(fn ($value, $key) => [
+                        ->mapWithKeys(fn($value, $key) => [
                             $key => collect($value)
                                 ->mapWithKeys(function ($v, $k) {
                                     $v = match (true) {
@@ -70,8 +102,9 @@ class FbActivityInfolist
                                         is_array($v), is_object($v) => json_encode($v, JSON_UNESCAPED_UNICODE),
                                         default => (string) $v
                                     };
+
                                     try {
-                                        throw_unless(preg_match('/[- \/]/', $v));
+                                        throw_unless(preg_match('/^\d{1,4}[-\/]\d{1,2}[-\/]\d{2,4}$/', $v));
                                         $v = __jdatetime(null, Carbon::parse($v));
                                     } catch (\Exception $e) {
                                         $v = is_array($v) ? json_encode($v) : $v;
@@ -81,7 +114,7 @@ class FbActivityInfolist
                                 })
                                 ->toArray()
                         ])
-                        ->map(fn ($value, $key) => KeyValueEntry::make($key)->state($value))
+                        ->map(fn($value, $key) => KeyValueEntry::make($key)->state($value))
                         ->toArray())
                     ->columns(1),
             ])
