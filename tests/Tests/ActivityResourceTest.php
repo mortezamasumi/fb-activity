@@ -1,7 +1,6 @@
 <?php
 
 use Filament\Actions\Exports\Models\Export;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Mortezamasumi\FbActivity\Facades\FbActivity;
 use Mortezamasumi\FbActivity\Resources\Exports\ActivityExporter;
@@ -10,13 +9,13 @@ use Mortezamasumi\FbActivity\Resources\Pages\ViewActivity;
 use Mortezamasumi\FbActivity\Resources\FbActivityResource;
 use Mortezamasumi\FbActivity\Tests\Services\Podcast;
 use Mortezamasumi\FbActivity\Tests\Services\User;
-use Mortezamasumi\FbEssentials\Facades\FbPersian;
 use Spatie\Activitylog\Models\Activity;
 
 describe('as guest/un-authorized user', function () {
     it('guests cannot access the resource', function () {
         Podcast::factory()->create();
 
+        /** @var Pest $this */
         $this
             ->get(FbActivityResource::getUrl('index'))
             ->assertRedirect(config('filament.auth.pages.login'));
@@ -27,6 +26,7 @@ describe('as guest/un-authorized user', function () {
     });
 
     it('un-authorized users cannot access the resource', function () {
+        /** @var Pest $this */
         $this->actingAs(User::factory()->create());
 
         Podcast::factory()->create();
@@ -45,16 +45,19 @@ describe('as authorized user', function () {
     beforeEach(function () {
         Gate::before(fn() => true);
 
+        /** @var Pest $this */
         $this->actingAs(User::factory()->create());
     });
 
     it('can render index page', function () {
+        /** @var Pest $this */
         $this
             ->get(FbActivityResource::getUrl('index'))
             ->assertSuccessful();
     });
 
     it('can show empty table', function () {
+        /** @var Pest $this */
         $this
             ->livewire(ListActivity::class)
             ->assertCanSeeTableRecords([])
@@ -70,6 +73,7 @@ describe('as authorized user', function () {
             $podcast->update(['text' => fake()->sentence()]);
         }
 
+        /** @var Pest $this */
         $this
             ->livewire(ListActivity::class)
             ->assertCanSeeTableRecords($podcast->activities)
@@ -79,6 +83,7 @@ describe('as authorized user', function () {
     it('can view by url', function () {
         $activity = Podcast::factory()->create()->activities->first();
 
+        /** @var Pest $this */
         $this
             ->get(FbActivityResource::getUrl('view', [
                 'record' => $activity->getRouteKey(),
@@ -89,6 +94,7 @@ describe('as authorized user', function () {
     it('can view data', function () {
         $activity = Podcast::factory()->create()->activities->first();
 
+        /** @var Pest $this */
         $this
             ->livewire(ViewActivity::class, [
                 'record' => $activity->getRouteKey(),
@@ -107,6 +113,7 @@ describe('as authorized user', function () {
 
         Podcast::factory($count)->create();
 
+        /** @var Pest $this */
         $this
             ->actingAs(User::factory()->create())
             ->livewire(ListActivity::class)
