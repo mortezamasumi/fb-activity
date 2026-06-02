@@ -105,7 +105,7 @@ class FbActivityResource extends Resource
                     )
             )
             ->unless(
-                Auth::user()->can('ViewAllUsers:Activity'),
+                Auth::user()?->can('ViewAllUsers:Activity'),
                 fn(Builder $query) => $query->where('causer_id', '=', Auth::id()),
             );
 
