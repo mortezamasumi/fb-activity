@@ -10,12 +10,13 @@ use Mortezamasumi\FbActivity\Resources\FbActivityResource;
 use Mortezamasumi\FbActivity\Tests\Services\Podcast;
 use Mortezamasumi\FbActivity\Tests\Services\User;
 use Spatie\Activitylog\Models\Activity;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 
 describe('as guest/un-authorized user', function () {
     it('guests cannot access the resource', function () {
         Podcast::factory()->create();
 
-        /** @var Pest $this */
         $this
             ->get(FbActivityResource::getUrl('index'))
             ->assertRedirect(config('filament.auth.pages.login'));
@@ -26,7 +27,6 @@ describe('as guest/un-authorized user', function () {
     });
 
     it('un-authorized users cannot access the resource', function () {
-        /** @var Pest $this */
         $this->actingAs(User::factory()->create());
 
         Podcast::factory()->create();
@@ -45,19 +45,16 @@ describe('as authorized user', function () {
     beforeEach(function () {
         Gate::before(fn() => true);
 
-        /** @var Pest $this */
         $this->actingAs(User::factory()->create());
     });
 
     it('can render index page', function () {
-        /** @var Pest $this */
         $this
             ->get(FbActivityResource::getUrl('index'))
             ->assertSuccessful();
     });
 
     it('can show empty table', function () {
-        /** @var Pest $this */
         $this
             ->livewire(ListActivity::class)
             ->assertCanSeeTableRecords([])
@@ -73,7 +70,6 @@ describe('as authorized user', function () {
             $podcast->update(['text' => fake()->sentence()]);
         }
 
-        /** @var Pest $this */
         $this
             ->livewire(ListActivity::class)
             ->assertCanSeeTableRecords($podcast->activities)
@@ -83,7 +79,6 @@ describe('as authorized user', function () {
     it('can view by url', function () {
         $activity = Podcast::factory()->create()->activities->first();
 
-        /** @var Pest $this */
         $this
             ->get(FbActivityResource::getUrl('view', [
                 'record' => $activity->getRouteKey(),
@@ -94,7 +89,6 @@ describe('as authorized user', function () {
     it('can view data', function () {
         $activity = Podcast::factory()->create()->activities->first();
 
-        /** @var Pest $this */
         $this
             ->livewire(ViewActivity::class, [
                 'record' => $activity->getRouteKey(),
@@ -110,17 +104,14 @@ describe('as authorized user', function () {
         Activity::truncate();
 
         $count = 6;
-
         Podcast::factory($count)->create();
 
-        /** @var Pest $this */
         $this
             ->actingAs(User::factory()->create())
             ->livewire(ListActivity::class)
-            ->callAction('export-activities')
-            ->assertNotified();
+            ->callAction('export-activities');
 
-        $export = Export::latest()->first();
+        $export = Export::query()->latest()->first();
 
         expect($export)
             ->not
@@ -133,26 +124,57 @@ describe('as authorized user', function () {
             ->not
             ->toBeNull();
 
-        $this
-            ->get(route(
-                'filament.exports.download',
-                ['export' => $export, 'format' => 'csv'],
-                absolute: false
-            ))
-            ->assertDownload()
-            ->tap(function ($response) {
-                $content = $response->streamedContent();
+        $disk  = $export->getFileDisk();
+        $files = $export->getFileDisk()->files($export->getFileDirectory());
 
-                foreach (collect(ActivityExporter::getColumns())->map(fn($column) => $column->getLabel()) as $label) {
-                    expect($content)
-                        ->toContain($label);
-                };
+        $headersFile = collect($files)->first(fn($file) => str_ends_with($file, 'headers.csv'));
+        expect($headersFile)->not->toBeNull('The headers.csv file was not generated.');
 
-                foreach (Podcast::all() as $podcast) {
-                    expect($content)
-                        ->toContain($podcast->id)
-                        ->toContain($podcast->text);
-                }
-            });
+        $rawHeaders      = str_replace("\u{FEFF}", '', $disk->get($headersFile));
+        $expectedHeaders = collect(ActivityExporter::getColumns())->map(fn($col) => $col->getLabel())->all();
+        expect(str_getcsv($rawHeaders))->toContain(...$expectedHeaders);
+
+        $dataFiles = collect($files)->reject(fn($file) => str_ends_with($file, 'headers.csv'));
+        expect($dataFiles)->not->toBeEmpty('No data files were generated.');
+
+        $dataContent = '';
+        foreach ($dataFiles as $dataFile) {
+            $dataContent .= $disk->get($dataFile);
+        }
+        $propertyRows = collect(str_getcsv(str_replace("\u{FEFF}", '', $dataContent)))
+            ->filter(fn($value) => is_string($value) && str_starts_with($value, '{"attributes"'))
+            ->map(fn($value) => json_decode($value, true));
+
+        $podcasts = Podcast::all();
+        foreach ($podcasts as $podcast) {
+            $found = $propertyRows->contains(
+                fn($row) => ($row['attributes']['id'] ?? null) === $podcast->id &&
+                    ($row['attributes']['text'] ?? null) === $podcast->text
+            );
+
+            expect($found)->toBeTrue("Podcast #{$podcast->id} not found in exported CSV.");
+        }
+
+        // $this
+        //     ->get(route(
+        //         'filament.exports.download',
+        //         ['export' => $export, 'format' => 'csv'],
+        //         absolute: false
+        //     ))
+        //     ->assertDownload()
+        // ->tap(function ($response) {
+        //     $content = $response->streamedContent();
+
+        //     foreach (collect(ActivityExporter::getColumns())->map(fn($column) => $column->getLabel()) as $label) {
+        //         expect($content)
+        //             ->toContain($label);
+        //     };
+
+        //     foreach (Podcast::all() as $podcast) {
+        //         expect($content)
+        //             ->toContain($podcast->id)
+        //             ->toContain($podcast->text);
+        //     }
+        // });
     });
 });

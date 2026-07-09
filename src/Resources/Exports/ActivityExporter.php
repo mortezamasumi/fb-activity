@@ -27,7 +27,7 @@ class ActivityExporter extends Exporter
                 ->label(__('fb-activity::fb-activity.table.subject_id')),
             ExportColumn::make('causer')
                 ->label(__('fb-activity::fb-activity.table.causer'))
-                ->formatStateUsing(fn (Model $record) => $record?->causer?->name ?? '-'),
+                ->formatStateUsing(fn(Model $record) => $record?->causer?->name ?? '-'),
             ExportColumn::make('causer_id')
                 ->label(__('fb-activity::fb-activity.table.causer_id')),
             ExportColumn::make('properties')
