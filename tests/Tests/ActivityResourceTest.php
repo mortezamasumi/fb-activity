@@ -10,8 +10,6 @@ use Mortezamasumi\FbActivity\Resources\FbActivityResource;
 use Mortezamasumi\FbActivity\Tests\Services\Podcast;
 use Mortezamasumi\FbActivity\Tests\Services\User;
 use Spatie\Activitylog\Models\Activity;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\URL;
 
 describe('as guest/un-authorized user', function () {
     it('guests cannot access the resource', function () {
