@@ -99,82 +99,88 @@ describe('as authorized user', function () {
             ->assertSeeText(ucwords($activity->event));
         // ->assertSeeText(FbPersian::jDateTime(null, $activity->created_at));
     });
+});
 
-    it('can export activities and verify downloaded csv file', function () {
-        Activity::truncate();
+it('can export activities and verify downloaded csv file', function () {
+    Gate::before(fn() => true);
 
-        $count = 6;
-        Podcast::factory($count)->create();
+    Activity::truncate();
 
-        $this
-            ->actingAs(User::factory()->create())
-            ->livewire(ListActivity::class)
-            ->callAction('export-activities');
+    $count = 6;
+    Podcast::factory($count)->create();
 
-        $export = Export::query()->latest()->first();
+    $this->actingAs($user = User::factory()->create());
 
-        expect($export)
-            ->not
-            ->toBeNull()
-            ->processed_rows
-            ->toBe($count)
-            ->successful_rows
-            ->toBe($count)
-            ->completed_at
-            ->not
-            ->toBeNull();
+    $this
+        ->livewire(ListActivity::class)
+        ->callAction('export-activities');
 
-        $disk  = $export->getFileDisk();
-        $files = $export->getFileDisk()->files($export->getFileDirectory());
+    $export = Export::query()->latest()->first();
+    expect($export)
+        ->not
+        ->toBeNull()
+        ->processed_rows
+        ->toBe($count)
+        ->successful_rows
+        ->toBe($count)
+        ->completed_at
+        ->not
+        ->toBeNull();
 
-        $headersFile = collect($files)->first(fn($file) => str_ends_with($file, 'headers.csv'));
-        expect($headersFile)->not->toBeNull('The headers.csv file was not generated.');
+    $this->actingAs($user);
 
-        $rawHeaders      = str_replace("\u{FEFF}", '', $disk->get($headersFile));
-        $expectedHeaders = collect(ActivityExporter::getColumns())->map(fn($col) => $col->getLabel())->all();
-        expect(str_getcsv($rawHeaders))->toContain(...$expectedHeaders);
+    $this
+        ->get(route(
+            'filament.exports.download',
+            ['export' => $export, 'format' => 'csv'],
+            absolute: false
+        ))
+        ->assertDownload()
+        ->tap(function ($response) {
+            $content = $response->streamedContent();
 
-        $dataFiles = collect($files)->reject(fn($file) => str_ends_with($file, 'headers.csv'));
-        expect($dataFiles)->not->toBeEmpty('No data files were generated.');
+            foreach (collect(ActivityExporter::getColumns())->map(fn($column) => $column->getLabel()) as $label) {
+                expect($content)
+                    ->toContain($label);
+            };
 
-        $dataContent = '';
-        foreach ($dataFiles as $dataFile) {
-            $dataContent .= $disk->get($dataFile);
-        }
-        $propertyRows = collect(str_getcsv(str_replace("\u{FEFF}", '', $dataContent)))
-            ->filter(fn($value) => is_string($value) && str_starts_with($value, '{"attributes"'))
-            ->map(fn($value) => json_decode($value, true));
+            foreach (Podcast::all() as $podcast) {
+                expect($content)
+                    ->toContain($podcast->id)
+                    ->toContain($podcast->text);
+            }
+        });
 
-        $podcasts = Podcast::all();
-        foreach ($podcasts as $podcast) {
-            $found = $propertyRows->contains(
-                fn($row) => ($row['attributes']['id'] ?? null) === $podcast->id &&
-                    ($row['attributes']['text'] ?? null) === $podcast->text
-            );
+    // this part is no necessary but i left may be used later in other codes
 
-            expect($found)->toBeTrue("Podcast #{$podcast->id} not found in exported CSV.");
-        }
+    $disk  = $export->getFileDisk();
+    $files = $export->getFileDisk()->files($export->getFileDirectory());
 
-        // $this
-        //     ->get(route(
-        //         'filament.exports.download',
-        //         ['export' => $export, 'format' => 'csv'],
-        //         absolute: false
-        //     ))
-        //     ->assertDownload()
-        // ->tap(function ($response) {
-        //     $content = $response->streamedContent();
+    $headersFile = collect($files)->first(fn($file) => str_ends_with($file, 'headers.csv'));
+    expect($headersFile)->not->toBeNull('The headers.csv file was not generated.');
 
-        //     foreach (collect(ActivityExporter::getColumns())->map(fn($column) => $column->getLabel()) as $label) {
-        //         expect($content)
-        //             ->toContain($label);
-        //     };
+    $rawHeaders      = str_replace("\u{FEFF}", '', $disk->get($headersFile));
+    $expectedHeaders = collect(ActivityExporter::getColumns())->map(fn($col) => $col->getLabel())->all();
+    expect(str_getcsv($rawHeaders))->toContain(...$expectedHeaders);
 
-        //     foreach (Podcast::all() as $podcast) {
-        //         expect($content)
-        //             ->toContain($podcast->id)
-        //             ->toContain($podcast->text);
-        //     }
-        // });
-    });
+    $dataFiles = collect($files)->reject(fn($file) => str_ends_with($file, 'headers.csv'));
+    expect($dataFiles)->not->toBeEmpty('No data files were generated.');
+
+    $dataContent = '';
+    foreach ($dataFiles as $dataFile) {
+        $dataContent .= $disk->get($dataFile);
+    }
+    $propertyRows = collect(str_getcsv(str_replace("\u{FEFF}", '', $dataContent)))
+        ->filter(fn($value) => is_string($value) && str_starts_with($value, '{"attributes"'))
+        ->map(fn($value) => json_decode($value, true));
+
+    $podcasts = Podcast::all();
+    foreach ($podcasts as $podcast) {
+        $found = $propertyRows->contains(
+            fn($row) => ($row['attributes']['id'] ?? null) === $podcast->id &&
+                ($row['attributes']['text'] ?? null) === $podcast->text
+        );
+
+        expect($found)->toBeTrue("Podcast #{$podcast->id} not found in exported CSV.");
+    }
 });
