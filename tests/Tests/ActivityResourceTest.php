@@ -4,9 +4,9 @@ use Filament\Actions\Exports\Models\Export;
 use Illuminate\Support\Facades\Gate;
 use Mortezamasumi\FbActivity\Facades\FbActivity;
 use Mortezamasumi\FbActivity\Resources\Exports\ActivityExporter;
+use Mortezamasumi\FbActivity\Resources\FbActivityResource;
 use Mortezamasumi\FbActivity\Resources\Pages\ListActivity;
 use Mortezamasumi\FbActivity\Resources\Pages\ViewActivity;
-use Mortezamasumi\FbActivity\Resources\FbActivityResource;
 use Mortezamasumi\FbActivity\Tests\Services\Podcast;
 use Mortezamasumi\FbActivity\Tests\Services\User;
 use Spatie\Activitylog\Models\Activity;
@@ -41,10 +41,18 @@ describe('as guest/un-authorized user', function () {
 
 describe('as authorized user', function () {
     beforeEach(function () {
-        Gate::before(fn() => true);
+        data_set($this, 'adminUser', User::factory()->create());
 
-        $this->actingAs(User::factory()->create());
+        $this->actingAs($this->adminUser);
+
+        Gate::before(fn() => true);
     });
+
+    // beforeEach(function () {
+    //     Gate::before(fn() => true);
+
+    //     $this->actingAs(User::factory()->create());
+    // });
 
     it('can render index page', function () {
         $this
@@ -97,88 +105,84 @@ describe('as authorized user', function () {
             ->assertSeeText(ucwords($activity->event));
         // ->assertSeeText(FbPersian::jDateTime(null, $activity->created_at));
     });
-});
 
-it('can export activities and verify downloaded csv file', function () {
-    Gate::before(fn() => true);
+    it('can export activities and verify downloaded csv file', function () {
+        Activity::truncate();
 
-    Activity::truncate();
+        $count = 6;
+        Podcast::factory($count)->create();
 
-    $count = 6;
-    Podcast::factory($count)->create();
+        $this
+            ->livewire(ListActivity::class)
+            ->callAction('export-activities');
 
-    $this->actingAs($user = User::factory()->create());
+        $export = Export::query()->latest()->first();
+        expect($export)
+            ->not
+            ->toBeNull()
+            ->processed_rows
+            ->toBe($count)
+            ->successful_rows
+            ->toBe($count)
+            ->completed_at
+            ->not
+            ->toBeNull();
 
-    $this
-        ->livewire(ListActivity::class)
-        ->callAction('export-activities');
+        $this->actingAs($this->adminUser);
 
-    $export = Export::query()->latest()->first();
-    expect($export)
-        ->not
-        ->toBeNull()
-        ->processed_rows
-        ->toBe($count)
-        ->successful_rows
-        ->toBe($count)
-        ->completed_at
-        ->not
-        ->toBeNull();
+        $this
+            ->get(route(
+                'filament.exports.download',
+                ['export' => $export, 'format' => 'csv'],
+                absolute: false
+            ))
+            ->assertDownload()
+            ->tap(function ($response) {
+                $content = $response->streamedContent();
 
-    $this->actingAs($user);
+                foreach (collect(ActivityExporter::getColumns())->map(fn($column) => $column->getLabel()) as $label) {
+                    expect($content)
+                        ->toContain($label);
+                };
 
-    $this
-        ->get(route(
-            'filament.exports.download',
-            ['export' => $export, 'format' => 'csv'],
-            absolute: false
-        ))
-        ->assertDownload()
-        ->tap(function ($response) {
-            $content = $response->streamedContent();
+                foreach (Podcast::all() as $podcast) {
+                    expect($content)
+                        ->toContain($podcast->id)
+                        ->toContain($podcast->text);
+                }
+            });
 
-            foreach (collect(ActivityExporter::getColumns())->map(fn($column) => $column->getLabel()) as $label) {
-                expect($content)
-                    ->toContain($label);
-            };
+        // this part is no necessary but i left may be used later in other codes
 
-            foreach (Podcast::all() as $podcast) {
-                expect($content)
-                    ->toContain($podcast->id)
-                    ->toContain($podcast->text);
-            }
-        });
+        $disk  = $export->getFileDisk();
+        $files = $export->getFileDisk()->files($export->getFileDirectory());
 
-    // this part is no necessary but i left may be used later in other codes
+        $headersFile = collect($files)->first(fn($file) => str_ends_with($file, 'headers.csv'));
+        expect($headersFile)->not->toBeNull('The headers.csv file was not generated.');
 
-    $disk  = $export->getFileDisk();
-    $files = $export->getFileDisk()->files($export->getFileDirectory());
+        $rawHeaders      = str_replace("\u{FEFF}", '', $disk->get($headersFile));
+        $expectedHeaders = collect(ActivityExporter::getColumns())->map(fn($col) => $col->getLabel())->all();
+        expect(str_getcsv($rawHeaders))->toContain(...$expectedHeaders);
 
-    $headersFile = collect($files)->first(fn($file) => str_ends_with($file, 'headers.csv'));
-    expect($headersFile)->not->toBeNull('The headers.csv file was not generated.');
+        $dataFiles = collect($files)->reject(fn($file) => str_ends_with($file, 'headers.csv'));
+        expect($dataFiles)->not->toBeEmpty('No data files were generated.');
 
-    $rawHeaders      = str_replace("\u{FEFF}", '', $disk->get($headersFile));
-    $expectedHeaders = collect(ActivityExporter::getColumns())->map(fn($col) => $col->getLabel())->all();
-    expect(str_getcsv($rawHeaders))->toContain(...$expectedHeaders);
+        $dataContent = '';
+        foreach ($dataFiles as $dataFile) {
+            $dataContent .= $disk->get($dataFile);
+        }
+        $propertyRows = collect(str_getcsv(str_replace("\u{FEFF}", '', $dataContent)))
+            ->filter(fn($value) => is_string($value) && str_starts_with($value, '{"attributes"'))
+            ->map(fn($value) => json_decode($value, true));
 
-    $dataFiles = collect($files)->reject(fn($file) => str_ends_with($file, 'headers.csv'));
-    expect($dataFiles)->not->toBeEmpty('No data files were generated.');
+        $podcasts = Podcast::all();
+        foreach ($podcasts as $podcast) {
+            $found = $propertyRows->contains(
+                fn($row) => ($row['attributes']['id'] ?? null) === $podcast->id &&
+                    ($row['attributes']['text'] ?? null) === $podcast->text
+            );
 
-    $dataContent = '';
-    foreach ($dataFiles as $dataFile) {
-        $dataContent .= $disk->get($dataFile);
-    }
-    $propertyRows = collect(str_getcsv(str_replace("\u{FEFF}", '', $dataContent)))
-        ->filter(fn($value) => is_string($value) && str_starts_with($value, '{"attributes"'))
-        ->map(fn($value) => json_decode($value, true));
-
-    $podcasts = Podcast::all();
-    foreach ($podcasts as $podcast) {
-        $found = $propertyRows->contains(
-            fn($row) => ($row['attributes']['id'] ?? null) === $podcast->id &&
-                ($row['attributes']['text'] ?? null) === $podcast->text
-        );
-
-        expect($found)->toBeTrue("Podcast #{$podcast->id} not found in exported CSV.");
-    }
+            expect($found)->toBeTrue("Podcast #{$podcast->id} not found in exported CSV.");
+        }
+    });
 });
