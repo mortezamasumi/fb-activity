@@ -12,7 +12,7 @@ use Mortezamasumi\FbActivity\Tests\Services\User;
 use Spatie\Activitylog\Models\Activity;
 
 describe('as guest/un-authorized user', function () {
-    it('guests cannot access the resource', function () {
+    it('cannot access the resource by guests', function () {
         Podcast::factory()->create();
 
         $this
@@ -24,7 +24,7 @@ describe('as guest/un-authorized user', function () {
             ->assertRedirect(config('filament.auth.pages.login'));
     });
 
-    it('un-authorized users cannot access the resource', function () {
+    it('cannot access the resource by un-authorized users', function () {
         $this->actingAs(User::factory()->create());
 
         Podcast::factory()->create();

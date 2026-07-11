@@ -33,9 +33,6 @@ class FbActivityPlugin implements Plugin
 
     public static function get(): static
     {
-        /** @var static $plugin */
-        $plugin = filament(app(static::class)->getId());
-
-        return $plugin;
+        return filament(app(static::class)->getId());
     }
 }
