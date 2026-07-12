@@ -20,7 +20,7 @@ class ListActivity extends ListRecords
                 ->modalSubmitActionLabel(__('fb-activity::fb-activity.export.action'))
                 ->exporter(config('fb-activity.export.exporter'))
                 ->maxRows(config('fb-activity.export.max_export_rows'))
-                ->visible(Auth::user()->can('Export:Activity')),
+                ->visible(fn() => (bool) Auth::user()?->can('Export:Activity')),
         ];
     }
 }
