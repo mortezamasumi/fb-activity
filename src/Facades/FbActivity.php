@@ -5,8 +5,8 @@ namespace Mortezamasumi\FbActivity\Facades;
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @method static ?string getSubjectName(?Model $record, ?string $state)
- * @method static ?string getSubject(?Model $record, ?string $state)
+ * @method static ?string getSubjectName(?\Illuminate\Database\Eloquent\Model $record, ?string $state)
+ * @method static ?string getSubject(?\Illuminate\Database\Eloquent\Model $record, ?string $state)
  *
  * @see \Mortezamasumi\FbActivity\FbActivity
  */

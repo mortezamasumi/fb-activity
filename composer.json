@@ -1,10 +1,13 @@
 {
     "name": "mortezamasumi/fb-activity",
-    "description": "This is my package fb-activity",
+    "description": "Filament v5 activity log resource with exports, filters, and Shield integration",
     "keywords": [
         "mortezamasumi",
         "laravel",
-        "fb-activity"
+        "filament",
+        "fb-activity",
+        "activity",
+        "log"
     ],
     "homepage": "https://github.com/mortezamasumi/fb-activity",
     "support": {
@@ -28,17 +31,19 @@
     },
     "require-dev": {
         "filament/upgrade": "^5.0",
+        "larastan/larastan": "^3.10",
+        "laravel/pint": "^1.30",
         "orchestra/testbench": "^10.0",
         "pestphp/pest": "^4.0",
         "pestphp/pest-plugin-arch": "^4.0",
         "pestphp/pest-plugin-browser": "^4.0",
         "pestphp/pest-plugin-laravel": "^4.0",
-        "pestphp/pest-plugin-livewire": "^4.0"
+        "pestphp/pest-plugin-livewire": "^4.0",
+        "phpstan/phpstan": "^2.2"
     },
     "autoload": {
         "psr-4": {
-            "Mortezamasumi\\FbActivity\\": "src/",
-            "Mortezamasumi\\FbActivity\\Database\\Factories\\": "database/factories/"
+            "Mortezamasumi\\FbActivity\\": "src/"
         }
     },
     "autoload-dev": {
@@ -49,13 +54,14 @@
     "scripts": {
         "post-autoload-dump": "@php ./vendor/bin/testbench package:discover --ansi",
         "test": "vendor/bin/pest",
-        "test-coverage": "vendor/bin/pest --coverage"
+        "test-coverage": "vendor/bin/pest --coverage",
+        "pint": "vendor/bin/pint",
+        "analyse": "vendor/bin/phpstan analyse --no-progress"
     },
     "config": {
         "sort-packages": true,
         "allow-plugins": {
-            "pestphp/pest-plugin": true,
-            "phpstan/extension-installer": true
+            "pestphp/pest-plugin": true
         }
     },
     "extra": {

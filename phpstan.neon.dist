@@ -1,0 +1,17 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: 8
+    paths:
+        - src
+    tmpDir: build/phpstan
+    ignoreErrors:
+        # jDateTime() is registered on Filament components at runtime by
+        # fb-essentials' macros, so PHPStan cannot resolve it statically.
+        - message: '#jDateTime\(\)#'
+          path: src
+        # __fb_setting() is a global helper shipped by fb-setting; usage in
+        # getEloquentQuery() is guarded by function_exists() at runtime.
+        - message: '#Function __fb_setting not found#'
+          path: src

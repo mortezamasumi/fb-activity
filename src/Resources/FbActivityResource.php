@@ -2,6 +2,7 @@
 
 namespace Mortezamasumi\FbActivity\Resources;
 
+use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
@@ -15,7 +16,6 @@ use Mortezamasumi\FbActivity\Resources\Pages\ViewActivity;
 use Mortezamasumi\FbActivity\Resources\Schemas\FbActivityInfolist;
 use Mortezamasumi\FbActivity\Resources\Table\FbActivitiesTable;
 use Spatie\Activitylog\Models\Activity;
-use BackedEnum;
 use UnitEnum;
 
 class FbActivityResource extends Resource
@@ -54,13 +54,13 @@ class FbActivityResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        if (!config('fb-activity.navigation.badge')) {
+        if (! config('fb-activity.navigation.badge')) {
             return null;
         }
 
         Number::useLocale(App::getLocale());
 
-        return Number::format(static::getModel()::count());
+        return (string) Number::format(static::getModel()::count());
     }
 
     public static function getNavigationBadgeTooltip(): ?string
@@ -97,7 +97,7 @@ class FbActivityResource extends Resource
             ->with(['causer', 'subject'])
             ->when(
                 function_exists('__fb_setting'),
-                fn(Builder $query) => $query
+                fn (Builder $query) => $query
                     ->where(
                         'created_at',
                         '>=',
@@ -106,7 +106,7 @@ class FbActivityResource extends Resource
             )
             ->unless(
                 Auth::user()?->can('ViewAllUsers:Activity'),
-                fn(Builder $query) => $query->where('causer_id', '=', Auth::id()),
+                fn (Builder $query) => $query->where('causer_id', '=', Auth::id()),
             );
 
         $include_logs = config('fb-activity.include_logs');
@@ -116,13 +116,14 @@ class FbActivityResource extends Resource
             $pattern = trim($pattern);
             $pattern = str_replace('*', '%', $pattern);
             $pattern = str_replace('?', '_', $pattern);
+
             return $pattern;
         };
 
         $includes = $include_logs ? array_filter(explode(',', $include_logs)) : [];
         $excludes = $exclude_logs ? array_filter(explode(',', $exclude_logs)) : [];
 
-        if (!empty($includes)) {
+        if (! empty($includes)) {
             $query->where(function (Builder $q) use ($includes, $convertWildcards) {
                 foreach ($includes as $pattern) {
                     $q->orWhere('description', 'LIKE', $convertWildcards($pattern));
@@ -130,7 +131,7 @@ class FbActivityResource extends Resource
             });
         }
 
-        if (!empty($excludes)) {
+        if (! empty($excludes)) {
             foreach ($excludes as $pattern) {
                 $query->where('description', 'NOT LIKE', $convertWildcards($pattern));
             }

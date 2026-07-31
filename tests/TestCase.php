@@ -2,19 +2,33 @@
 
 namespace Mortezamasumi\FbActivity\Tests;
 
+use BladeUI\Heroicons\BladeHeroiconsServiceProvider;
+use BladeUI\Icons\BladeIconsServiceProvider;
+use Filament\Actions\ActionsServiceProvider;
 use Filament\Facades\Filament;
+use Filament\FilamentServiceProvider;
+use Filament\Forms\FormsServiceProvider;
 use Filament\Http\Middleware\Authenticate;
+use Filament\Infolists\InfolistsServiceProvider;
+use Filament\Notifications\NotificationsServiceProvider;
 use Filament\Pages\Dashboard;
 use Filament\Panel;
+use Filament\Schemas\SchemasServiceProvider;
+use Filament\Support\SupportServiceProvider;
+use Filament\Tables\TablesServiceProvider;
+use Filament\Widgets\WidgetsServiceProvider;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
+use Livewire\LivewireServiceProvider;
 use Mortezamasumi\FbActivity\FbActivityPlugin;
 use Mortezamasumi\FbActivity\FbActivityServiceProvider;
 use Mortezamasumi\FbEssentials\FbEssentialsPlugin;
 use Mortezamasumi\FbEssentials\FbEssentialsServiceProvider;
 use Orchestra\Testbench\TestCase as TestbenchTestCase;
+use Orchestra\Workbench\WorkbenchServiceProvider;
+use RyanChandler\BladeCaptureDirective\BladeCaptureDirectiveServiceProvider;
 use Spatie\Activitylog\ActivitylogServiceProvider;
 
 class TestCase extends TestbenchTestCase
@@ -111,20 +125,20 @@ class TestCase extends TestbenchTestCase
     protected function getPackageProviders($app)
     {
         return [
-            \BladeUI\Heroicons\BladeHeroiconsServiceProvider::class,
-            \BladeUI\Icons\BladeIconsServiceProvider::class,
-            \Filament\FilamentServiceProvider::class,
-            \Filament\Actions\ActionsServiceProvider::class,
-            \Filament\Forms\FormsServiceProvider::class,
-            \Filament\Infolists\InfolistsServiceProvider::class,
-            \Filament\Notifications\NotificationsServiceProvider::class,
-            \Filament\Schemas\SchemasServiceProvider::class,
-            \Filament\Support\SupportServiceProvider::class,
-            \Filament\Tables\TablesServiceProvider::class,
-            \Filament\Widgets\WidgetsServiceProvider::class,
-            \Livewire\LivewireServiceProvider::class,
-            \RyanChandler\BladeCaptureDirective\BladeCaptureDirectiveServiceProvider::class,
-            \Orchestra\Workbench\WorkbenchServiceProvider::class,
+            BladeHeroiconsServiceProvider::class,
+            BladeIconsServiceProvider::class,
+            FilamentServiceProvider::class,
+            ActionsServiceProvider::class,
+            FormsServiceProvider::class,
+            InfolistsServiceProvider::class,
+            NotificationsServiceProvider::class,
+            SchemasServiceProvider::class,
+            SupportServiceProvider::class,
+            TablesServiceProvider::class,
+            WidgetsServiceProvider::class,
+            LivewireServiceProvider::class,
+            BladeCaptureDirectiveServiceProvider::class,
+            WorkbenchServiceProvider::class,
             ActivitylogServiceProvider::class,
             FbEssentialsServiceProvider::class,
             FbActivityServiceProvider::class,

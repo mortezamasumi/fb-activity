@@ -4,7 +4,6 @@ namespace Mortezamasumi\FbActivity\Resources\Exports;
 
 use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;
-use Illuminate\Database\Eloquent\Model;
 use Mortezamasumi\FbEssentials\Traits\ExportCompletedNotificationBody;
 use Spatie\Activitylog\Models\Activity;
 
@@ -27,7 +26,7 @@ class ActivityExporter extends Exporter
                 ->label(__('fb-activity::fb-activity.table.subject_id')),
             ExportColumn::make('causer')
                 ->label(__('fb-activity::fb-activity.table.causer'))
-                ->formatStateUsing(fn(Model $record) => $record?->causer?->name ?? '-'),
+                ->formatStateUsing(fn (Activity $record): string => (string) ($record->causer?->getAttribute('name') ?? '-')),
             ExportColumn::make('causer_id')
                 ->label(__('fb-activity::fb-activity.table.causer_id')),
             ExportColumn::make('properties')

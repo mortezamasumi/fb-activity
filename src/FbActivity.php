@@ -22,12 +22,18 @@ class FbActivity
             return '-';
         }
 
-        if (class_exists($state)) {
-            $subjectModel = $state::find($record->subject_id);
+        $subjectId = $record?->getAttribute('subject_id');
 
-            $subjectName = $subjectModel?->name ?? $subjectModel?->title ?? $subjectModel?->text ?? '-';
+        if ($record && class_exists($state) && is_subclass_of($state, Model::class)) {
+            /** @var class-string<Model> $state */
+            $subjectModel = $state::query()->whereKey($subjectId)->first();
+
+            $subjectName = $subjectModel?->getAttribute('name')
+                ?? $subjectModel?->getAttribute('title')
+                ?? $subjectModel?->getAttribute('text')
+                ?? '-';
         } else {
-            $subjectName = $record->subject_id;
+            $subjectName = $subjectId;
         }
 
         $sn = $this->getSubjectName($record, $state);
@@ -37,8 +43,8 @@ class FbActivity
         }
 
         return __('fb-activity::fb-activity.infolist.subject_name', [
-            'a' => $this->getSubjectName($record, $state),
-            'b' => $subjectName,
+            'a' => $sn,
+            'b' => $subjectName ?? '-',
         ]);
     }
 }

@@ -9,7 +9,6 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 use Mortezamasumi\FbEssentials\Facades\FbPersian;
@@ -23,13 +22,13 @@ class FbActivitiesTable
                 TextColumn::make('log_name')
                     ->label(__('fb-activity::fb-activity.table.type'))
                     ->badge()
-                    ->formatStateUsing(fn($state) => ucwords($state))
+                    ->formatStateUsing(fn ($state) => ucwords($state))
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('event')
                     ->label(__('fb-activity::fb-activity.table.event'))
-                    ->formatStateUsing(fn($state) => ucwords($state))
+                    ->formatStateUsing(fn ($state) => ucwords($state))
                     ->badge()
-                    ->color(fn(string $state): string => match ($state) {
+                    ->color(fn (string $state): string => match ($state) {
                         'draft' => 'gray',
                         'updated' => 'warning',
                         'created' => 'success',
@@ -40,20 +39,16 @@ class FbActivitiesTable
                     ->sortable(),
                 TextColumn::make('subject_type')
                     ->label(__('fb-activity::fb-activity.table.subject'))
-                    // ->formatStateUsing(fn($state) => FbActivity::getSubjectName(null, $state))
-                    // ->tooltip(fn(Model $record): ?string => $record->subject_id)
                     ->sortable()
                     ->searchable(),
-                // ->copyable()
-                // ->copyableState(fn(Model $record): ?string => $record->subject_id),
                 TextColumn::make('causer.name')
                     ->label(__('fb-activity::fb-activity.table.causer'))
                     ->default('-')
-                    ->searchable(query: fn(Builder $query, string $search): Builder => $query
+                    ->searchable(query: fn (Builder $query, string $search): Builder => $query
                         ->when(
                             $search === '-',
-                            fn(Builder $query): Builder => $query->whereDoesntHave('causer'),
-                            fn(Builder $query): Builder => $query->whereHas(
+                            fn (Builder $query): Builder => $query->whereDoesntHave('causer'),
+                            fn (Builder $query): Builder => $query->whereHas(
                                 'causer',
                                 function (Builder $query) use ($search) {
                                     $potentialColumns = ['name', 'first_name', 'last_name'];
@@ -62,7 +57,7 @@ class FbActivitiesTable
                                     $existingColumns = Schema::getColumnListing($tableName);
                                     $validColumns = array_intersect($potentialColumns, $existingColumns);
 
-                                    if (!empty($validColumns)) {
+                                    if (! empty($validColumns)) {
                                         return $query->whereAny($validColumns, 'like', "%{$search}%");
                                     }
 
@@ -70,7 +65,7 @@ class FbActivitiesTable
                                 }
                             )
                         ))
-                    ->visible(Auth::user()->can('ViewAllUsers:Activity')),
+                    ->visible((bool) Auth::user()?->can('ViewAllUsers:Activity')),
                 TextColumn::make('created_at')
                     ->label(__('fb-activity::fb-activity.table.created_at'))
                     ->jDateTime()
@@ -78,14 +73,14 @@ class FbActivitiesTable
             ])
             ->filters([
                 Filter::make('created_at')
-                    ->label('fb-activity::fb-activity.table.created_at')
+                    ->label(__('fb-activity::fb-activity.table.created_at'))
                     ->indicateUsing(function (array $data): array {
                         $indicators = [];
                         if ($data['created_from'] ?? null) {
-                            $indicators['created_from'] = __('fb-activity::fb-activity.filter.created_from') . ': ' . FbPersian::jDateTime(null, $data['created_from']);
+                            $indicators['created_from'] = __('fb-activity::fb-activity.filter.created_from').': '.FbPersian::jDateTime(null, $data['created_from']);
                         }
                         if ($data['created_until'] ?? null) {
-                            $indicators['created_until'] = __('fb-activity::fb-activity.filter.created_until') . ': ' . FbPersian::jDateTime(null, $data['created_until']);
+                            $indicators['created_until'] = __('fb-activity::fb-activity.filter.created_until').': '.FbPersian::jDateTime(null, $data['created_until']);
                         }
 
                         return $indicators;
@@ -95,18 +90,10 @@ class FbActivitiesTable
                             ->schema([
                                 DateTimePicker::make('created_from')
                                     ->label(__('fb-activity::fb-activity.filter.created_from'))
-                                    ->when(
-                                        value: App::getLocale() === 'fa',
-                                        callback: fn($component) => $component->jalali(weekdaysShort: true)
-                                    )
                                     ->seconds(false)
                                     ->jDateTime(),
                                 DateTimePicker::make('created_until')
                                     ->label(__('fb-activity::fb-activity.filter.created_until'))
-                                    ->when(
-                                        value: App::getLocale() === 'fa',
-                                        callback: fn($component) => $component->jalali(weekdaysShort: true)
-                                    )
                                     ->seconds(false)
                                     ->jDateTime(),
                             ]),
@@ -115,16 +102,16 @@ class FbActivitiesTable
                         return $query
                             ->when(
                                 $data['created_from'],
-                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
                             )
                             ->when(
                                 $data['created_until'],
-                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
                             );
                     }),
             ])
             ->headerActions([
-                DeleteBulkAction::make()->visible(Auth::user()->can('Delete:Activity')),
+                DeleteBulkAction::make()->visible((bool) Auth::user()?->can('Delete:Activity')),
             ])
             ->defaultSort('created_at', 'desc')
             ->persistSortInSession()
