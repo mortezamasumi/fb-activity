@@ -5,7 +5,9 @@ namespace Mortezamasumi\FbActivity;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Mortezamasumi\FbActivity\Support\ActivitySubjectResolver;
 use Mortezamasumi\FbEssentials\Facades\FbPersian;
+use Spatie\Activitylog\Models\Activity;
 
 class FbActivity
 {
@@ -106,5 +108,70 @@ class FbActivity
         } catch (\Throwable) {
             return $date;
         }
+    }
+
+    /**
+     * Resolve a human title for the activity's subject (spec D1). Falls back to
+     * "Label #id" when every candidate misses.
+     */
+    public function resolveSubjectTitle(?Activity $activity): ?string
+    {
+        $title = $this->resolver()->subjectTitle($activity);
+
+        if ($title !== null) {
+            return $title;
+        }
+
+        $subjectType = $activity?->getAttribute('subject_type');
+        $subjectId = $activity?->getAttribute('subject_id');
+
+        if (blank($subjectType)) {
+            return null;
+        }
+
+        return trim($this->subjectModelLabel($subjectType).' #'.(string) $subjectId);
+    }
+
+    /**
+     * Resolve a human title for the activity's causer (spec D2). Falls back to
+     * "Label #id" when every candidate misses.
+     */
+    public function resolveCauserTitle(?Activity $activity): ?string
+    {
+        $title = $this->resolver()->causerTitle($activity);
+
+        if ($title !== null) {
+            return $title;
+        }
+
+        $causerType = $activity?->getAttribute('causer_type');
+        $causerId = $activity?->getAttribute('causer_id');
+
+        if (blank($causerType)) {
+            return null;
+        }
+
+        return trim($this->resolver()->modelLabel($causerType).' #'.(string) $causerId);
+    }
+
+    /**
+     * Short human label for a model type ("Patient", "Podcast", ...).
+     */
+    public function subjectModelLabel(?string $subjectType): string
+    {
+        return $this->resolver()->modelLabel($subjectType);
+    }
+
+    /**
+     * URL to the subject's own page, or null when not linkable (spec D3).
+     */
+    public function resolveSubjectUrl(?Activity $activity): ?string
+    {
+        return $this->resolver()->subjectUrl($activity);
+    }
+
+    protected function resolver(): ActivitySubjectResolver
+    {
+        return app(ActivitySubjectResolver::class);
     }
 }

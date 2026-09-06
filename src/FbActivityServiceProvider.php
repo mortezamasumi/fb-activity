@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Gate;
 use Livewire\Features\SupportTesting\Testable;
 use Mortezamasumi\FbActivity\Policies\FbActivityPolicy;
 use Mortezamasumi\FbActivity\Resources\FbActivityResource;
+use Mortezamasumi\FbActivity\Support\ActivitySubjectResolver;
 use Mortezamasumi\FbActivity\Testing\TestsFbActivity;
 use Mortezamasumi\FbEssentials\Facades\FbEssentials;
 use Spatie\Activitylog\Models\Activity;
@@ -33,6 +34,9 @@ class FbActivityServiceProvider extends PackageServiceProvider
 
     public function packageBooted(): void
     {
+        $this->app->singleton(ActivitySubjectResolver::class);
+        $this->app->singleton(FbActivity::class);
+
         FbEssentials::filamentShieldAddResource(
             FbActivityResource::class,
             [

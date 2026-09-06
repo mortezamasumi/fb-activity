@@ -51,6 +51,12 @@ class TestCase extends TestbenchTestCase
             $table->timestamps();
         });
 
+        Schema::create('translatable_things', function (Blueprint $table) {
+            $table->id();
+            $table->json('name')->nullable();
+            $table->timestamps();
+        });
+
         Schema::create('exports', function (Blueprint $table) {
             $table->id();
             $table->timestamp('completed_at')->nullable();
