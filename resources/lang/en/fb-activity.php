@@ -22,6 +22,7 @@ return [
         'type' => 'Type',
         'event' => 'Event',
         'subject' => 'Subject',
+        'subject_type' => 'Subject type',
         'subject_id' => 'Subject Id',
         'causer' => 'Causer',
         'causer_id' => 'Causer Id',

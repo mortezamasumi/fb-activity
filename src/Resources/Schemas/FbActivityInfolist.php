@@ -21,14 +21,31 @@ class FbActivityInfolist
             ->components([
                 Flex::make([
                     Section::make([
-                        TextEntry::make('causer.name')
+                        TextEntry::make('causer')
                             ->label(__('fb-activity::fb-activity.infolist.causer'))
+                            ->state(fn (?Model $record): ?string => $record === null ? null : FbActivity::resolveCauserTitle($record))
                             ->default('-')
                             ->weight(FontWeight::SemiBold)
                             ->size(TextSize::Large),
-                        TextEntry::make('subject_type')
+                        TextEntry::make('subject')
                             ->label(__('fb-activity::fb-activity.infolist.subject'))
-                            ->formatStateUsing(fn (?Model $record, $state) => FbActivity::getSubject($record, $state))
+                            ->state(function (?Model $record): ?string {
+                                if ($record === null) {
+                                    return null;
+                                }
+
+                                $title = FbActivity::resolveSubjectTitle($record);
+                                $label = FbActivity::subjectModelLabel($record->getAttribute('subject_type'));
+
+                                if ($title === null || $label === '-') {
+                                    return $title ?? $label;
+                                }
+
+                                return __('fb-activity::fb-activity.infolist.subject_name', [
+                                    'a' => $label,
+                                    'b' => $title,
+                                ]);
+                            })
                             ->weight(FontWeight::SemiBold)
                             ->size(TextSize::Large),
                         TextEntry::make('description')

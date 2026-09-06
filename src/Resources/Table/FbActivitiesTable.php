@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 use Mortezamasumi\FbActivity\Facades\FbActivity;
 use Mortezamasumi\FbEssentials\Facades\FbPersian;
+use Spatie\Activitylog\Models\Activity;
 
 class FbActivitiesTable
 {
@@ -38,12 +39,20 @@ class FbActivitiesTable
                     })
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('subject_type')
+                TextColumn::make('subject')
                     ->label(__('fb-activity::fb-activity.table.subject'))
-                    ->sortable()
-                    ->searchable(),
-                TextColumn::make('causer.name')
+                    ->state(fn (Activity $record): ?string => FbActivity::resolveSubjectTitle($record))
+                    ->description(fn (Activity $record): ?string => config('fb-activity.subject.show_model_label', true)
+                        ? FbActivity::subjectModelLabel($record->getAttribute('subject_type'))
+                        : null)
+                    ->sortable(query: fn (Builder $query, string $direction): Builder => $query->orderBy('subject_type', $direction))
+                    ->searchable(query: fn (Builder $query, string $search): Builder => $query
+                        ->where(fn (Builder $query) => $query
+                            ->where('subject_type', 'like', "%{$search}%")
+                            ->orWhere('subject_id', 'like', "%{$search}%"))),
+                TextColumn::make('causer')
                     ->label(__('fb-activity::fb-activity.table.causer'))
+                    ->state(fn (Activity $record): ?string => FbActivity::resolveCauserTitle($record))
                     ->default('-')
                     ->searchable(query: fn (Builder $query, string $search): Builder => $query
                         ->when(

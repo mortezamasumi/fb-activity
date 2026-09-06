@@ -21,13 +21,16 @@ class ActivityExporter extends Exporter
                 ->label(__('fb-activity::fb-activity.table.type')),
             ExportColumn::make('event')
                 ->label(__('fb-activity::fb-activity.table.event')),
+            ExportColumn::make('subject')
+                ->label(__('fb-activity::fb-activity.table.subject'))
+                ->formatStateUsing(fn (Activity $record): string => (string) (FbActivity::resolveSubjectTitle($record) ?? $record->getAttribute('subject_type'))),
             ExportColumn::make('subject_type')
-                ->label(__('fb-activity::fb-activity.table.subject')),
+                ->label(__('fb-activity::fb-activity.table.subject_type')),
             ExportColumn::make('subject_id')
                 ->label(__('fb-activity::fb-activity.table.subject_id')),
             ExportColumn::make('causer')
                 ->label(__('fb-activity::fb-activity.table.causer'))
-                ->formatStateUsing(fn (Activity $record): string => (string) ($record->causer?->getAttribute('name') ?? '-')),
+                ->formatStateUsing(fn (Activity $record): string => (string) (FbActivity::resolveCauserTitle($record) ?? '-')),
             ExportColumn::make('causer_id')
                 ->label(__('fb-activity::fb-activity.table.causer_id')),
             ExportColumn::make('properties')

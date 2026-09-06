@@ -22,6 +22,7 @@ return [
         'type' => 'نوع',
         'event' => 'رویداد',
         'subject' => 'موضوع',
+        'subject_type' => 'نوع موضوع',
         'subject_id' => 'آی دی موضوع',
         'causer' => 'عامل',
         'causer_id' => 'آی دی عامل',

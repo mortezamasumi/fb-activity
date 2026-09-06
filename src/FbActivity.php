@@ -11,6 +11,9 @@ use Spatie\Activitylog\Models\Activity;
 
 class FbActivity
 {
+    /**
+     * @deprecated Use subjectModelLabel() instead.
+     */
     public function getSubjectName(?Model $record, ?string $state): ?string
     {
         if (empty($state)) {
@@ -20,35 +23,27 @@ class FbActivity
         return Str::of($state)->afterLast('\\')->headline();
     }
 
+    /**
+     * @deprecated Use resolveSubjectTitle()/resolveCauserTitle() instead. Kept
+     * for backwards compatibility; now delegates to the resolver and no longer
+     * issues a fresh query for the subject.
+     */
     public function getSubject(?Model $record, ?string $state): ?string
     {
-        if (empty($state)) {
-            return '-';
-        }
-
-        $subjectId = $record?->getAttribute('subject_id');
-
-        if ($record && class_exists($state) && is_subclass_of($state, Model::class)) {
-            /** @var class-string<Model> $state */
-            $subjectModel = $state::query()->whereKey($subjectId)->first();
-
-            $subjectName = $subjectModel?->getAttribute('name')
-                ?? $subjectModel?->getAttribute('title')
-                ?? $subjectModel?->getAttribute('text')
-                ?? '-';
-        } else {
-            $subjectName = $subjectId;
-        }
-
-        $sn = $this->getSubjectName($record, $state);
-
-        if ($sn === '-') {
+        if (! $record instanceof Activity) {
             return null;
         }
 
+        $title = $this->resolveSubjectTitle($record);
+        $label = $this->subjectModelLabel($record->getAttribute('subject_type'));
+
+        if ($title === null || $label === '-') {
+            return $title ?? $label;
+        }
+
         return __('fb-activity::fb-activity.infolist.subject_name', [
-            'a' => $sn,
-            'b' => $subjectName ?? '-',
+            'a' => $label,
+            'b' => $title,
         ]);
     }
 
