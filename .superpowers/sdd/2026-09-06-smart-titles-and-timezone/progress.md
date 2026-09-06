@@ -17,10 +17,29 @@
 
 ## Task state
 
-- [in-progress] Task 1 — config surface + formatDateTime/toStorageDate
-- [ ] Task 2 — wire formatter into table/infolist/exporter/filter
-- [ ] Task 3 — HasActivityTitle + resolver
-- [ ] Task 4 — render resolved titles
-- [ ] Task 5 — subject links
-- [ ] Task 6 — badges/icons/filters/README
-- [ ] Task 7 — old/new diff table (approved)
+- [x] Task 1 — config surface + formatDateTime/toStorageDate (commit b0c5a1c~1)
+- [x] Task 2 — wire formatter into table/infolist/exporter/filter (b0c5a1c)
+- [x] Task 3 — HasActivityTitle + resolver (185b976)
+- [x] Task 4 — render resolved titles (8a6a9f3 + ff718b8)
+- [x] Task 5 — subject links (6893d71 + b64f6fc)
+- [x] Task 6 — badges/icons/filters/README (58e6b02)
+- [x] Task 7 — old/new diff table (a89f248) — APPROVED, done
+
+## Final state (2026-09-06)
+
+HEAD a89f248, main. Suite: 61 tests / 155 assertions passing. phpstan + pint clean.
+7 conventional commits. All SDD task briefs + reports in this ledger.
+
+Key implementation discoveries (for future plans):
+
+- FbActivity + resolver must be SINGLETONS for per-request memoization (provider now
+  binds both).
+- Filament Resource::getModelLabel() default is kebab-LOWERCASE ("podcast") — apps
+  wanting title-case fallbacks set subject.labels per model.
+- assertTableColumnStateSet asserts raw state; formatted output needs
+  assertTableColumnFormattedStateSet.
+- The fb-essentials jDateTime macro default format is time_full ('l j F Y H:i'),
+  not time_simple.
+- getExtraProperty() throws when properties is null — always guard.
+- Filament url()/color() closures must be null-safe per record (a column-level null
+  disables link/badge for that row).
