@@ -17,6 +17,10 @@ return [
         'description' => 'Description',
         'created_at' => 'Created At',
         'subject_name' => ':a ↣ :b',
+        'changes' => 'Changes',
+        'attribute' => 'Attribute',
+        'old' => 'Old value',
+        'new' => 'New value',
     ],
     'table' => [
         'type' => 'Type',

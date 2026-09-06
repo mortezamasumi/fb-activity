@@ -17,6 +17,10 @@ return [
         'description' => 'توضیح',
         'created_at' => 'زمان ایجاد',
         'subject_name' => ':a ↢ :b',
+        'changes' => 'تغییرات',
+        'attribute' => 'ویژگی',
+        'old' => 'مقدار قبلی',
+        'new' => 'مقدار جدید',
     ],
     'table' => [
         'type' => 'نوع',

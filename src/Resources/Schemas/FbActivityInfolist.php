@@ -5,12 +5,14 @@ namespace Mortezamasumi\FbActivity\Resources\Schemas;
 use Filament\Infolists\Components\KeyValueEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Flex;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
 use Filament\Support\Enums\TextSize;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Mortezamasumi\FbActivity\Facades\FbActivity;
 use Spatie\Activitylog\Models\Activity;
 
@@ -76,6 +78,10 @@ class FbActivityInfolist
                         ->grow(false),
                 ])
                     ->from('md'),
+                Section::make(__('fb-activity::fb-activity.infolist.changes'))
+                    ->columns(1)
+                    ->visible(fn (?Model $record): bool => self::hasDiffFor($record))
+                    ->schema(fn (?Model $record): array => self::changesSchema($record)),
                 Section::make()
                     ->visible(function (?Model $record): bool {
                         /** @var Collection<int|string, mixed>|null $properties */
@@ -91,23 +97,16 @@ class FbActivityInfolist
                         /** @var Collection<int|string, mixed> $properties */
                         $properties = $record->getAttribute('properties');
 
+                        // When an old/new diff is rendered in its own section,
+                        // keep those two keys out of the flat list.
+                        $skipKeys = self::hasDiffFor($record) ? ['old', 'attributes'] : [];
+
                         return $properties
+                            ->reject(fn (mixed $value, mixed $key) => in_array($key, $skipKeys, true))
                             ->mapWithKeys(fn (mixed $value, mixed $key) => [
                                 $key => collect((array) $value)
                                     ->mapWithKeys(function (mixed $v, mixed $k) {
-                                        $v = match (true) {
-                                            is_string($v) => $v,
-                                            is_null($v) => '',
-                                            is_bool($v) => $v ? '1' : '0',
-                                            is_array($v), is_object($v) => json_encode($v, JSON_UNESCAPED_UNICODE) ?: '',
-                                            default => (string) $v
-                                        };
-
-                                        if (preg_match('/^\d{1,4}[-\/]\d{1,2}[-\/]\d{2,4}$/', $v)) {
-                                            $v = FbActivity::formatDateTime($v, __('fb-activity::fb-activity.table.date_format'));
-                                        }
-
-                                        return [$k => $v];
+                                        return [$k => self::stringify($v)];
                                     })
                                     ->toArray(),
                             ])
@@ -117,5 +116,86 @@ class FbActivityInfolist
                     ->columns(1),
             ])
             ->columns(1);
+    }
+
+    /**
+     * Dedicated "Changes" section rendering one row per changed attribute
+     * (attribute | old | new) when spatie stored both `old` and `attributes`
+     * property keys (spec V2, plan Task 7).
+     */
+    protected static function hasDiffFor(?Model $record): bool
+    {
+        if ($record === null) {
+            return false;
+        }
+
+        /** @var Collection<int|string, mixed>|null $properties */
+        $properties = $record->getAttribute('properties');
+
+        if ($properties === null) {
+            return false;
+        }
+
+        return $properties->has('old') &&
+            $properties->has('attributes') &&
+            filled((array) $properties->get('old')) &&
+            filled((array) $properties->get('attributes'));
+    }
+
+    /**
+     * @return array<int, Grid>
+     */
+    protected static function changesSchema(?Model $record): array
+    {
+        if ($record === null || ! self::hasDiffFor($record)) {
+            return [];
+        }
+
+        /** @var Collection<int|string, mixed> $properties */
+        $properties = $record->getAttribute('properties');
+
+        $old = (array) ($properties->get('old') ?? []);
+        $new = (array) ($properties->get('attributes') ?? []);
+
+        return collect($new)
+            ->map(fn (mixed $value, mixed $attribute): Grid => Grid::make(3)
+                ->schema([
+                    TextEntry::make('attribute')
+                        ->label(__('fb-activity::fb-activity.infolist.attribute'))
+                        ->state(self::humanizeAttribute((string) $attribute))
+                        ->weight(FontWeight::SemiBold),
+                    TextEntry::make('old')
+                        ->label(__('fb-activity::fb-activity.infolist.old'))
+                        ->state(self::stringify($old[$attribute] ?? null))
+                        ->color('danger'),
+                    TextEntry::make('new')
+                        ->label(__('fb-activity::fb-activity.infolist.new'))
+                        ->state(self::stringify($value))
+                        ->color('success'),
+                ]))
+            ->values()
+            ->all();
+    }
+
+    protected static function stringify(mixed $value): string
+    {
+        $value = match (true) {
+            is_string($value) => $value,
+            is_null($value) => '',
+            is_bool($value) => $value ? '1' : '0',
+            is_array($value), is_object($value) => json_encode($value, JSON_UNESCAPED_UNICODE) ?: '',
+            default => (string) $value
+        };
+
+        if (preg_match('/^\d{1,4}[-\/]\d{1,2}[-\/]\d{2,4}$/', $value)) {
+            $value = FbActivity::formatDateTime($value, __('fb-activity::fb-activity.table.date_format'));
+        }
+
+        return $value ?? '';
+    }
+
+    protected static function humanizeAttribute(string $attribute): string
+    {
+        return Str::of($attribute)->replace('_', ' ')->headline()->toString();
     }
 }
