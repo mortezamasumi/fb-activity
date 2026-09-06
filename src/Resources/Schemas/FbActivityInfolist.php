@@ -2,7 +2,6 @@
 
 namespace Mortezamasumi\FbActivity\Resources\Schemas;
 
-use Carbon\Carbon;
 use Filament\Infolists\Components\KeyValueEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Flex;
@@ -50,7 +49,7 @@ class FbActivityInfolist
                             ->size(TextSize::Large),
                         TextEntry::make('created_at')
                             ->label(__('fb-activity::fb-activity.infolist.created_at'))
-                            ->jDateTime()
+                            ->formatStateUsing(fn (?Model $record): ?string => FbActivity::formatDateTime($record?->getAttribute('created_at')))
                             ->weight(FontWeight::SemiBold)
                             ->size(TextSize::Large),
                     ])
@@ -85,7 +84,7 @@ class FbActivityInfolist
                                         };
 
                                         if (preg_match('/^\d{1,4}[-\/]\d{1,2}[-\/]\d{2,4}$/', $v)) {
-                                            $v = __jdatetime(null, Carbon::parse($v));
+                                            $v = FbActivity::formatDateTime($v, __('fb-activity::fb-activity.table.date_format'));
                                         }
 
                                         return [$k => $v];

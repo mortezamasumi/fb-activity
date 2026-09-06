@@ -4,6 +4,7 @@ namespace Mortezamasumi\FbActivity\Resources\Exports;
 
 use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;
+use Mortezamasumi\FbActivity\Facades\FbActivity;
 use Mortezamasumi\FbEssentials\Traits\ExportCompletedNotificationBody;
 use Spatie\Activitylog\Models\Activity;
 
@@ -35,7 +36,7 @@ class ActivityExporter extends Exporter
                 ->label(__('fb-activity::fb-activity.table.description')),
             ExportColumn::make('created_at')
                 ->label(__('fb-activity::fb-activity.table.created_at'))
-                ->jDateTime(),
+                ->formatStateUsing(fn (Activity $record): string => (string) FbActivity::formatDateTime($record->created_at)),
         ];
     }
 }

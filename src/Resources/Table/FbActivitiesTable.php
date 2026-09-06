@@ -11,6 +11,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
+use Mortezamasumi\FbActivity\Facades\FbActivity;
 use Mortezamasumi\FbEssentials\Facades\FbPersian;
 
 class FbActivitiesTable
@@ -68,7 +69,7 @@ class FbActivitiesTable
                     ->visible((bool) Auth::user()?->can('ViewAllUsers:Activity')),
                 TextColumn::make('created_at')
                     ->label(__('fb-activity::fb-activity.table.created_at'))
-                    ->jDateTime()
+                    ->formatStateUsing(fn ($state) => FbActivity::formatDateTime($state))
                     ->sortable(),
             ])
             ->filters([
@@ -102,11 +103,11 @@ class FbActivitiesTable
                         return $query
                             ->when(
                                 $data['created_from'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', FbActivity::toStorageDate($date)),
                             )
                             ->when(
                                 $data['created_until'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', FbActivity::toStorageDate($date)),
                             );
                     }),
             ])
