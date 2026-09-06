@@ -2,8 +2,10 @@
 
 use Filament\Facades\Filament;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Route;
 use Mortezamasumi\FbActivity\Facades\FbActivity;
 use Mortezamasumi\FbActivity\Tests\Services\Podcast;
+use Mortezamasumi\FbActivity\Tests\Services\PodcastResource;
 use Mortezamasumi\FbActivity\Tests\Services\TranslatableThing;
 use Mortezamasumi\FbActivity\Tests\Services\User;
 use Spatie\Activitylog\Models\Activity;
@@ -33,7 +35,7 @@ it('resolves subject title from a config dot-path override across a relation', f
 
     // 'attributes' is not a relation of Podcast, so this candidate misses and
     // the resolver falls back to "Label #id".
-    expect(FbActivity::resolveSubjectTitle($activity))->toMatch('/^Podcast #\d+$/');
+    expect(FbActivity::resolveSubjectTitle($activity))->toMatch('/^podcast #\d+$/');
 
     // A real relation dot-path: Podcast has no relations, so simulate via a
     // model attribute that contains nested data (JSON column 'data' on models
@@ -43,7 +45,7 @@ it('resolves subject title from a config dot-path override across a relation', f
     $activity2 = Podcast::create(['text' => 'via activity relation'])->activities->first();
     // NOTE: key is still the subject type (Podcast) — an Activity-class key never
     // matches, so this also falls back.
-    expect(FbActivity::resolveSubjectTitle($activity2))->toMatch('/^Podcast #\d+$/');
+    expect(FbActivity::resolveSubjectTitle($activity2))->toMatch('/^podcast #\d+$/');
 });
 
 it('resolves subject title from a config closure override', function () {
@@ -70,8 +72,8 @@ it('skips a null override and falls through to the cascade', function () {
     $activity = Podcast::create(['text' => 'value'])->activities->first();
 
     // Podcast has no name/title attributes and no resource record-title attribute,
-    // so the resolver falls back to "Label #id".
-    expect(FbActivity::resolveSubjectTitle($activity))->toMatch('/^Podcast #\d+$/');
+    // so the resolver falls back to "Label #id" (Filament kebab label).
+    expect(FbActivity::resolveSubjectTitle($activity))->toMatch('/^podcast #\d+$/');
 });
 
 it('resolves subject title through the attribute cascade with accessors', function () {
@@ -159,7 +161,7 @@ it('uses the filament resource record title when configured on the resource', fu
 
     $activity = Podcast::create(['text' => 'no filament'])->activities->first();
 
-    expect(FbActivity::resolveSubjectTitle($activity))->toMatch('/^Podcast #\d+$/');
+    expect(FbActivity::resolveSubjectTitle($activity))->toMatch('/^podcast #\d+$/');
 });
 
 it('swallows a throwing closure override and falls through', function () {
@@ -171,7 +173,7 @@ it('swallows a throwing closure override and falls through', function () {
 
     $activity = Podcast::create(['text' => 'safe'])->activities->first();
 
-    expect(FbActivity::resolveSubjectTitle($activity))->toMatch('/^Podcast #\d+$/');
+    expect(FbActivity::resolveSubjectTitle($activity))->toMatch('/^podcast #\d+$/');
 });
 
 it('resolves causer titles through the causer config and cascade', function () {
@@ -220,6 +222,81 @@ it('resolves subject model labels from config, resource or basename', function (
         ->toBe('Activity')
         ->and(FbActivity::subjectModelLabel('Some\Vanished\Model'))
         ->toBe('Model');
+});
+
+it('resolves subject url from a config {id} pattern', function () {
+    config()->set('fb-activity.subject.urls', [
+        Podcast::class => '/admin/podcasts/{id}/edit',
+    ]);
+
+    $activity = Podcast::create(['text' => 'linked'])->activities->first();
+
+    expect(FbActivity::resolveSubjectUrl($activity))
+        ->toBe('/admin/podcasts/'.$activity->getAttribute('subject_id').'/edit');
+});
+
+it('resolves subject url from a config route name', function () {
+    Route::get('/admin/podcasts/{record}', fn () => 'ok')
+        ->name('podcasts.show');
+
+    config()->set('fb-activity.subject.urls', [
+        Podcast::class => 'podcasts.show',
+    ]);
+
+    $activity = Podcast::create(['text' => 'routed'])->activities->first();
+
+    expect(FbActivity::resolveSubjectUrl($activity))
+        ->toContain('/admin/podcasts/'.$activity->getAttribute('subject_id'));
+});
+
+it('resolves subject url from a config closure', function () {
+    config()->set('fb-activity.subject.urls', [
+        Podcast::class => fn ($record) => '/closure/'.$record->getKey(),
+    ]);
+
+    $activity = Podcast::create(['text' => 'closure url'])->activities->first();
+
+    expect(FbActivity::resolveSubjectUrl($activity))
+        ->toContain('/closure/'.$activity->getAttribute('subject_id'));
+});
+
+it('resolves subject url from the filament resource view page', function () {
+    $activity = Podcast::create(['text' => 'filament url'])->activities->first();
+
+    expect(FbActivity::resolveSubjectUrl($activity))
+        ->toBe(PodcastResource::getUrl('view', ['record' => $activity->getAttribute('subject_id')]));
+});
+
+it('returns null when the link feature is disabled', function () {
+    config()->set('fb-activity.subject.link.enabled', false);
+    config()->set('fb-activity.subject.urls', [
+        Podcast::class => '/admin/podcasts/{id}',
+    ]);
+
+    $activity = Podcast::create(['text' => 'disabled'])->activities->first();
+
+    expect(FbActivity::resolveSubjectUrl($activity))->toBeNull();
+});
+
+it('returns null when the configured route does not exist', function () {
+    config()->set('fb-activity.subject.urls', [
+        Podcast::class => 'nonexistent.route.name',
+    ]);
+
+    $activity = Podcast::create(['text' => 'broken'])->activities->first();
+
+    expect(FbActivity::resolveSubjectUrl($activity))->toBeNull();
+});
+
+it('returns null when the subject type has no url source', function () {
+    $activity = Activity::create([
+        'log_name' => 'default',
+        'description' => 'test',
+        'subject_type' => 'App\Models\Vanished',
+        'subject_id' => 5,
+    ]);
+
+    expect(FbActivity::resolveSubjectUrl($activity))->toBeNull();
 });
 
 class PodcastTitleResolver

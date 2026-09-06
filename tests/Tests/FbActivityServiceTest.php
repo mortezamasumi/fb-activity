@@ -52,6 +52,6 @@ it('returns the label when the subject cannot be derived (legacy getSubject)', f
     ]);
 
     // Label headline "Missing Model" + resolver fallback "Missing Model #42".
-    expect(FbActivity::getSubject($activity, 'App\\Models\\MissingModel'))
+    expect(FbActivity::getSubject($activity, 'App\Models\MissingModel'))
         ->toBe('Missing Model ↣ Missing Model #42');
 });

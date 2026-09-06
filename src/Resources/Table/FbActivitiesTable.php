@@ -45,6 +45,8 @@ class FbActivitiesTable
                     ->description(fn (Activity $record): ?string => config('fb-activity.subject.show_model_label', true)
                         ? FbActivity::subjectModelLabel($record->getAttribute('subject_type'))
                         : null)
+                    ->url(fn (Activity $record): ?string => FbActivity::resolveSubjectUrl($record), shouldOpenInNewTab: false)
+                    ->color(fn (Activity $record): ?string => FbActivity::resolveSubjectUrl($record) !== null ? 'primary' : null)
                     ->sortable(query: fn (Builder $query, string $direction): Builder => $query->orderBy('subject_type', in_array($direction, ['asc', 'desc'], true) ? $direction : 'asc'))
                     ->searchable(query: fn (Builder $query, string $search): Builder => $query
                         ->where(fn (Builder $query) => $query

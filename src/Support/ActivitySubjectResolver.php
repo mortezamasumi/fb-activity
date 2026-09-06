@@ -300,7 +300,13 @@ class ActivitySubjectResolver
             $resource = $this->filamentResourceFor($subjectType);
 
             if ($resource !== null) {
-                $url = $this->guard(fn () => $resource::getUrl('view', ['record' => $subjectId]));
+                $url = $this->guard(function () use ($resource, $subjectId): ?string {
+                    if (! $resource::hasPage('view')) {
+                        return null;
+                    }
+
+                    return $resource::getUrl('view', ['record' => $subjectId]);
+                });
 
                 if ($this->isUsableUrl($url)) {
                     return $url;

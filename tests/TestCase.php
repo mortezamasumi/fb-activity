@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\Schema;
 use Livewire\LivewireServiceProvider;
 use Mortezamasumi\FbActivity\FbActivityPlugin;
 use Mortezamasumi\FbActivity\FbActivityServiceProvider;
+use Mortezamasumi\FbActivity\Tests\Services\PodcastResource;
 use Mortezamasumi\FbEssentials\FbEssentialsPlugin;
 use Mortezamasumi\FbEssentials\FbEssentialsServiceProvider;
 use Orchestra\Testbench\TestCase as TestbenchTestCase;
@@ -112,6 +113,9 @@ class TestCase extends TestbenchTestCase
                 ->default()
                 ->pages([
                     Dashboard::class,
+                ])
+                ->resources([
+                    PodcastResource::class,
                 ])
                 ->plugins([
                     FbEssentialsPlugin::make(),
