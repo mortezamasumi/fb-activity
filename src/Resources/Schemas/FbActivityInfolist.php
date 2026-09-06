@@ -12,6 +12,7 @@ use Filament\Support\Enums\TextSize;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Mortezamasumi\FbActivity\Facades\FbActivity;
+use Spatie\Activitylog\Models\Activity;
 
 class FbActivityInfolist
 {
@@ -23,14 +24,16 @@ class FbActivityInfolist
                     Section::make([
                         TextEntry::make('causer')
                             ->label(__('fb-activity::fb-activity.infolist.causer'))
-                            ->state(fn (?Model $record): ?string => $record === null ? null : FbActivity::resolveCauserTitle($record))
+                            ->state(fn (?Model $record): ?string => $record instanceof Activity
+                                ? FbActivity::resolveCauserTitle($record)
+                                : null)
                             ->default('-')
                             ->weight(FontWeight::SemiBold)
                             ->size(TextSize::Large),
                         TextEntry::make('subject')
                             ->label(__('fb-activity::fb-activity.infolist.subject'))
                             ->state(function (?Model $record): ?string {
-                                if ($record === null) {
+                                if (! $record instanceof Activity) {
                                     return null;
                                 }
 

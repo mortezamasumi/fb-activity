@@ -3,6 +3,7 @@
 use Illuminate\Database\Eloquent\Model;
 use Mortezamasumi\FbActivity\Facades\FbActivity;
 use Mortezamasumi\FbActivity\Tests\Services\Podcast;
+use Spatie\Activitylog\Models\Activity;
 
 it('returns a dash when the subject type is empty', function () {
     expect(FbActivity::getSubjectName(null, ''))
@@ -14,12 +15,14 @@ it('returns a humanized short class name for the subject type', function () {
         ->toBe('Podcast');
 });
 
-it('returns a dash when the subject state is empty', function () {
+it('returns null when the activity is not an Activity model', function () {
     expect(FbActivity::getSubject(null, null))
-        ->toBe('-');
+        ->toBeNull();
 });
 
-it('resolves the subject display name from its name attribute', function () {
+it('resolves the subject display name from the resolver (legacy getSubject)', function () {
+    config()->set('fb-activity.subject.titles', [Podcast::class => 'text']);
+
     $podcast = Podcast::factory()->create();
 
     $activity = $podcast->activities->first();
@@ -28,24 +31,27 @@ it('resolves the subject display name from its name attribute', function () {
         ->toContain($podcast->text);
 });
 
-it('falls back to the subject id for unknown subject classes', function () {
-    $record = new class extends Model
-    {
-        protected $fillable = ['subject_id'];
-    };
-    $record->subject_id = 42;
+it('falls back to the label and id for unknown subject classes (legacy getSubject)', function () {
+    $activity = Activity::create([
+        'log_name' => 'default',
+        'description' => 'test',
+        'subject_type' => 'App\Models\MissingModel',
+        'subject_id' => 42,
+    ]);
 
-    expect(FbActivity::getSubject($record, 'App\\Models\\MissingModel'))
+    expect(FbActivity::getSubject($activity, 'App\Models\MissingModel'))
         ->toContain('42');
 });
 
-it('returns null when the subject name cannot be derived', function () {
-    $record = new class extends Model
-    {
-        protected $fillable = ['subject_id'];
-    };
-    $record->subject_id = 42;
+it('returns the label when the subject cannot be derived (legacy getSubject)', function () {
+    $activity = Activity::create([
+        'log_name' => 'default',
+        'description' => 'test',
+        'subject_type' => 'App\Models\MissingModel',
+        'subject_id' => 42,
+    ]);
 
-    expect(FbActivity::getSubject($record, ''))
-        ->toBe('-');
+    // Label headline "Missing Model" + resolver fallback "Missing Model #42".
+    expect(FbActivity::getSubject($activity, 'App\\Models\\MissingModel'))
+        ->toBe('Missing Model ↣ Missing Model #42');
 });
