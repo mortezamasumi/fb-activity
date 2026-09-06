@@ -7,6 +7,7 @@ use Filament\Forms\Components\DateTimePicker;
 use Filament\Schemas\Components\Grid;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
@@ -25,18 +26,18 @@ class FbActivitiesTable
                     ->label(__('fb-activity::fb-activity.table.type'))
                     ->badge()
                     ->formatStateUsing(fn ($state) => ucwords($state))
+                    ->color(fn ($state): ?string => config('fb-activity.logs.colors.'.$state))
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('event')
                     ->label(__('fb-activity::fb-activity.table.event'))
                     ->formatStateUsing(fn ($state) => ucwords($state))
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'draft' => 'gray',
-                        'updated' => 'warning',
-                        'created' => 'success',
-                        'deleted' => 'danger',
-                        default => 'primary',
-                    })
+                    ->icon(fn ($state): ?string => config('fb-activity.events.icons.'.$state))
+                    ->color(fn ($state): string => config('fb-activity.events.colors.'.$state)
+                        ?? match ($state) {
+                            'draft' => 'gray',
+                            default => 'primary',
+                        })
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('subject')
@@ -120,6 +121,34 @@ class FbActivitiesTable
                                 $data['created_until'],
                                 fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', FbActivity::toStorageDate($date)),
                             );
+                    }),
+                SelectFilter::make('log_name')
+                    ->label(__('fb-activity::fb-activity.table.type'))
+                    ->options(fn (): array => Activity::query()
+                        ->select('log_name')
+                        ->distinct()
+                        ->orderBy('log_name')
+                        ->pluck('log_name', 'log_name')
+                        ->map(fn ($log) => ucwords((string) $log))
+                        ->all()),
+                SelectFilter::make('event')
+                    ->label(__('fb-activity::fb-activity.table.event'))
+                    ->options(function (): array {
+                        /** @var array<string, string> $colors */
+                        $colors = (array) config('fb-activity.events.colors', []);
+
+                        return collect($colors)
+                            ->keys()
+                            ->merge(
+                                Activity::query()
+                                    ->select('event')
+                                    ->distinct()
+                                    ->pluck('event')
+                            )
+                            ->filter()
+                            ->unique()
+                            ->mapWithKeys(fn ($event) => [$event => ucwords((string) $event)])
+                            ->all();
                     }),
             ])
             ->headerActions([
