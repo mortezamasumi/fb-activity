@@ -41,7 +41,7 @@ it('falls back to label and id when nothing resolves', function () {
     $activity = Podcast::create(['text' => 'fallback'])->activities->first();
 
     livewire(ListActivity::class)
-        ->assertTableColumnFormattedStateSet('subject', 'Podcast #'.$activity->getAttribute('subject_id'), $activity);
+        ->assertTableColumnFormattedStateSet('subject', 'podcast #'.$activity->getAttribute('subject_id'), $activity);
 });
 
 it('shows the resolved title on the view page in subject_name format', function () {
@@ -122,7 +122,7 @@ it('keeps getSubject backwards compatible without a fresh query', function () {
 
     expect(FbActivity::getSubject($activity, $activity->getAttribute('subject_type')))
         ->toBe(__('fb-activity::fb-activity.infolist.subject_name', [
-            'a' => 'Podcast',
+            'a' => 'podcast',
             'b' => 'bc podcast',
         ]));
 });
